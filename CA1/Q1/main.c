@@ -34,7 +34,7 @@ int main() {
 	printf("\t- Type: %s\n", (char*)processorType);
 
 	int CPUInfo[4];
-	
+
     // Get count of physical cores
     cpuid(CPUInfo, 0x4);
     int physicalCores = ((CPUInfo[0] >> 26) & 0x3F) + 1;
@@ -44,6 +44,15 @@ int main() {
     cpuid(CPUInfo, 0x1);
     int logicalCores = (CPUInfo[1] >> 16) & 0xFF;
     printf("\t- Logical Cores: %d\n", logicalCores);
+
+    // Check if hyperthreading is supported
+	cpuid(CPUInfo, 0x1);
+    int isHyperthreadingSupported = (CPUInfo[2] >> 28) & 0x1;
+    if (isHyperthreadingSupported) {
+        printf("\t- Hyperthreading is supported.\n");
+    } else {
+        printf("\t- Hyperthreading is not supported.\n");
+    }
 
     return 0;
 }
