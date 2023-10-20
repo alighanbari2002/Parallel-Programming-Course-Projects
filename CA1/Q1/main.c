@@ -21,15 +21,29 @@ int main() {
 	// Show group members
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
-	printf("\t- Behrad Elmi [810199557]\n");
+	printf("\t- Behrad Elmi  [810199557]\n");
     printf("\n");
     
+	printf("Processor Info:\n");
+
     // Get processor type
 	int processorType[12];
 	cpuid(processorType + 0x0, 0x80000002);
 	cpuid(processorType + 0x4, 0x80000003);
 	cpuid(processorType + 0x8, 0x80000004);
-	printf("Processor Type:\n\t%s\n", (char*)processorType);
+	printf("\t- Type: %s\n", (char*)processorType);
+
+	int CPUInfo[4];
+	
+    // Get count of physical cores
+    cpuid(CPUInfo, 0x4);
+    int physicalCores = ((CPUInfo[0] >> 26) & 0x3F) + 1;
+    printf("\t- Physical Cores: %d\n", physicalCores);
+
+    // Get count of logical cores
+    cpuid(CPUInfo, 0x1);
+    int logicalCores = (CPUInfo[1] >> 16) & 0xFF;
+    printf("\t- Logical Cores: %d\n", logicalCores);
 
     return 0;
 }
