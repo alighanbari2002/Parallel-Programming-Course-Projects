@@ -56,11 +56,9 @@ int main() {
 
 	// Get cache information for cache level 1
     cpuid(info, 0x4 | (1 << 5)); // Set ECX to 1 to get cache level 1 information
-
     // Extract cache type and cache size
     int cacheType = info[0] & 0x1F;
     int cacheSize = ((info[1] >> 22) & 0x3FF) * 1024; // Size in KB
-
     printf("\t- Type: %d\n", cacheType);
     printf("\t- Size: %d KB\n", cacheSize);
 
