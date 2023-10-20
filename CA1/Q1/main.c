@@ -18,13 +18,13 @@ void cpuid(int CPUInfo[4], int InfoType) {
 #endif
 
 int main() {
-
+	// Show group members
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi [810199557]\n");
     printf("\n");
     
-    // Get eprocessor type
+    // Get processor type
 	int processorType[12];
 	cpuid(processorType + 0x0, 0x80000002);
 	cpuid(processorType + 0x4, 0x80000003);
