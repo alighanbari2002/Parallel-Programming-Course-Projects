@@ -29,11 +29,14 @@ $(PATH_OBJ)/main.o: main.c
 
 clean: clean-obj clean-exe delete-bin
 
-clean-obj: $(RM) $(PATH_OBJ)/*
+clean-obj:
+	$(RM) $(PATH_OBJ)/*
 
-clean-exe: $(RM) $(PATH_BIN)/$(OUT_EXE)
+clean-exe:
+	$(RM) $(PATH_BIN)/$(OUT_EXE)
 
-delete-bin: $(RMDIR) $(PATH_BIN)
+delete-bin:
+	$(RMDIR) $(PATH_BIN)
 
 run: ; @cd $(PATH_BIN) && ./$(OUT_EXE)
 
