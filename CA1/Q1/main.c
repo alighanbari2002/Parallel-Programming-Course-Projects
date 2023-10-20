@@ -22,9 +22,9 @@ int main() {
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
-    printf("\n");
     
-	printf("Processor Info:\n");
+	printf("\nProcessor Info:\n");
+	int CPUInfo[4];
 
     // Get processor type
 	int processorType[12];
@@ -32,8 +32,6 @@ int main() {
 	cpuid(processorType + 0x4, 0x80000003);
 	cpuid(processorType + 0x8, 0x80000004);
 	printf("\t- Type: %s\n", (char*)processorType);
-
-	int CPUInfo[4];
 
     // Get count of physical cores
     cpuid(CPUInfo, 0x4);
@@ -53,6 +51,18 @@ int main() {
     } else {
         printf("\t- Hyperthreading is not supported.\n");
     }
+
+	printf("\nCache Info:\n");
+
+	// Get cache information for cache level 1
+    cpuid(CPUInfo, 0x4 | (1 << 5)); // Set ECX to 1 to get cache level 1 information
+
+    // Extract cache type and cache size
+    int cacheType = CPUInfo[0] & 0x1F;
+    int cacheSize = ((CPUInfo[1] >> 22) & 0x3FF) * 1024; // Size in KB
+
+    printf("\t- Type: %d\n", cacheType);
+    printf("\t- Size: %d KB\n", cacheSize);
 
     return 0;
 }
