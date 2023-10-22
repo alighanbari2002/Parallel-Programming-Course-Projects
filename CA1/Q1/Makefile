@@ -6,8 +6,8 @@ RM           = rm -f
 RMDIR        = rm -rf
 MKDIR        = @mkdir -p
 # ------------------------------------------------------------------
-CC           = g++
-CFLAGS       = -c
+CC           = gcc
+CFLAGS       = -c -std=c11 -Wno-multichar
 INCDIR       = -I.
 # ------------------------------------------------------------------
 OUT_EXE      = Output
