@@ -162,7 +162,7 @@ int main() {
 					    			0X88, 0X99, 0XAA, 0XBB, 0XCC, 0XDD, 0XEE, 0XFF };
 	a = _mm_load_si128((const __m128i*)intArray);
 
-    printf("Testing print_int_vector function:\n");
+    printf("Testing print_int_vector Function:\n");
     printf("\t- 16 unsigned bytes format: ");
 	print_int_vector(a, u8);
     printf("\t- 16 signed bytes format: ");
@@ -184,7 +184,7 @@ int main() {
 	float floatArray[4] = {-6763.4, -3.1f, 1231231232.5, 7.0f};
 	b = _mm_load_ps(floatArray);
 
-    printf("Testing print_spfp_vector function:\n");
+    printf("Testing print_spfp_vector Function:\n");
     printf("\t- Content of the 128-bit register: ");
 	print_spfp_vector(b);
 
