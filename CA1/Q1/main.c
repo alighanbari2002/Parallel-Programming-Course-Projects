@@ -1,9 +1,13 @@
 #define _GNU_SOURCE
 #include <stdio.h>
-#include <x86intrin.h>
 #include <sched.h>
 #include <unistd.h>
 #include <string.h>
+#ifdef 		_WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
 
 #ifdef 		_WIN32					//  Windows
 #define 	cpuid    __cpuid
