@@ -10,7 +10,7 @@ CC           = gcc
 CFLAGS       = -c -std=c11 -Wno-multichar
 INCDIR       = -I.
 # ------------------------------------------------------------------
-OUT_EXE      = Output
+OUT_EXE      = program
 # ------------------------------------------------------------------
 all: pre_build build
 

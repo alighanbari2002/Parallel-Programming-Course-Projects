@@ -7,8 +7,10 @@ RMDIR        = rm -rf
 MKDIR        = @mkdir -p
 # ------------------------------------------------------------------
 CC           = g++
-CFLAGS       = -c
-INCDIR       = -I.
+CFLAGS       = -c -msse4.1
+INCDIR       = -I/opt/intel/ipp/include
+LIBDIR       = -L/opt/intel/ipp/lib
+LIBFILE      = -lippcore
 # ------------------------------------------------------------------
 OUT_EXE      = program
 # ------------------------------------------------------------------
