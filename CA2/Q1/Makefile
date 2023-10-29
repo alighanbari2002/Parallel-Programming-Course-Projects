@@ -13,6 +13,7 @@ LIBDIR       = -L/opt/intel/ipp/lib
 LIBFILE      = -lippcore
 # ------------------------------------------------------------------
 OUT_EXE      = program
+OUT_TXT      = output.txt
 # ------------------------------------------------------------------
 all: pre_build build
 
@@ -27,7 +28,7 @@ $(PATH_OBJ)/main.o: main.c
 # ------------------------------------------------------------------
 .PHONY: all\
 		clean clean-obj clean-exe delete-bin\
-		run help
+		run out help
 
 clean: clean-obj clean-exe delete-bin
 
@@ -35,13 +36,15 @@ clean-obj:
 	$(RM) $(PATH_OBJ)/*
 
 clean-exe:
-	$(RM) $(PATH_BIN)/$(OUT_EXE)
+	$(RM) $(PATH_BIN)/$(OUT_EXE) $(PATH_BIN)/$(OUT_TXT)
 
 delete-bin:
 	$(RMDIR) $(PATH_BIN)
 
 run: ; @cd $(PATH_BIN) && ./$(OUT_EXE)
 
+out: ; @cd $(PATH_BIN) && ./$(OUT_EXE) > $(OUT_TXT)
+
 help:
-	@echo Targets: all clean clean-obj clean-exe delete-bin run
+	@echo Targets: all clean clean-obj clean-exe delete-bin run out
 # ------------------------------------------------------------------
