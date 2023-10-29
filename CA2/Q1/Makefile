@@ -23,8 +23,8 @@ pre_build:
 build: $(PATH_OBJ)/main.o
 	$(CC) $(PATH_OBJ)/main.o -o $(PATH_BIN)/$(OUT_EXE)
 # ------------------------------------------------------------------
-$(PATH_OBJ)/main.o: main.c
-	$(CC) $(CFLAGS) $(INCDIR) main.c -o $@
+$(PATH_OBJ)/main.o: main.cpp
+	$(CC) $(CFLAGS) $(INCDIR) main.cpp -o $@
 # ------------------------------------------------------------------
 .PHONY: all\
 		clean clean-obj clean-exe clean-out delete-bin\

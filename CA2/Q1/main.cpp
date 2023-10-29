@@ -5,6 +5,8 @@
 #include <x86intrin.h>
 #endif
 
+#define ARRAY_SIZE 1048576
+
 int main() {
 	// Show group members
     printf("Group Members:\n");
