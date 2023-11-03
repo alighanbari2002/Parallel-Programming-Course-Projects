@@ -28,7 +28,7 @@ int __attach_serial(Mat Img1, Mat Img2, Mat Result) {
         for(int j = 0; j < NCOLS_2; j++) {
             int p1 = i * NCOLS + j;
             int p2 = i * NCOLS_2 + j;
-            R[p1] = (D1[p1] + D2[p2]) >> 1;
+            R[p1] = (D1[p1] + D2[p2]) >> 2;
         }
     }
     gettimeofday(&end, NULL);
