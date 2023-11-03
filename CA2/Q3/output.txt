@@ -1,0 +1,11 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Serial Method:
+	Execution time in microseconds: 6193
+
+Parallel Method:
+	Execution time in microseconds: 1560
+
+Speed up: 3.97
