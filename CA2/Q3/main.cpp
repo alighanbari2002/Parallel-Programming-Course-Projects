@@ -4,6 +4,8 @@
 #include <opencv2/highgui.hpp>
 #include <sys/time.h>
 #include <cstdlib>
+#include <x86intrin.h>
+#include <tmmintrin.h>
 
 using namespace cv;
 
@@ -39,7 +41,7 @@ int main()
         for(int j = 0; j < NCOLS; j++)
         {
             *(seq_res_ptr + i * NCOLS + j) = abs(
-                *(img1_ptr + i * NCOLS +j) - *(img2_ptr + i * NCOLS +j)
+                *(img1_ptr + i * NCOLS + j) - *(img2_ptr + i * NCOLS +j)
                 );
         }
     }
@@ -48,6 +50,8 @@ int main()
            "-%ld.%ld seconds\n",
            end.tv_sec-start.tv_sec,
            end.tv_usec-start.tv_usec);
+    cv::namedWindow("Sequential", cv::WINDOW_AUTOSIZE);
     imshow("Sequential", seq_res);
-    waitKey(0);   
+
+    return 0;
 }
