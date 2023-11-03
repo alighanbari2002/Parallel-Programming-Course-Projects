@@ -1,35 +1,40 @@
-# ------------------------------------------------------------------
+# Paths
 PATH_BIN     := bin
 PATH_OBJ     := $(PATH_BIN)/obj
-# ------------------------------------------------------------------
+
+# Commands
 RM           = rm -f
 RMDIR        = rm -rf
 MKDIR        = @mkdir -p
-# ------------------------------------------------------------------
+
+# Compiler
 CC           = g++
 CFLAGS       = -c -msse4.1
 INCDIR       = -I/opt/intel/ipp/include
 LIBDIR       = -L/opt/intel/ipp/lib
 LIBFILE      = -lippcore
-# ------------------------------------------------------------------
+
+# Output files
 OUT_EXE      = program
 OUT_TXT      = output.txt
-# ------------------------------------------------------------------
-all: pre_build build
-
-pre_build:
-	$(MKDIR) $(PATH_OBJ)
-
-build: $(PATH_OBJ)/main.o
-	$(CC) $(PATH_OBJ)/main.o -o $(PATH_BIN)/$(OUT_EXE)
-# ------------------------------------------------------------------
-$(PATH_OBJ)/main.o: main.cpp
-	$(CC) $(CFLAGS) $(INCDIR) main.cpp -o $@
 # ------------------------------------------------------------------
 .PHONY: all\
 		clean clean-obj clean-exe clean-out delete-bin\
 		run out\
 		help
+
+all: pre_build build
+
+pre_build:
+	$(MKDIR) $(PATH_OBJ)
+
+build: $(PATH_BIN)/$(OUT_EXE)
+
+$(PATH_BIN)/$(OUT_EXE): $(PATH_OBJ)/main.o
+	$(CC) $< -o $@
+
+$(PATH_OBJ)/%.o: %.cpp
+	$(CC) $(CFLAGS) $(INCDIR) $< -o $@
 
 clean: clean-obj clean-exe delete-bin
 
