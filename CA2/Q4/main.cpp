@@ -37,7 +37,7 @@ int __attach_serial(Mat Img1, Mat Img2, Mat Result) {
 	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
     printf("Serial Method:\n");
 	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q2 Serial.png", Result);
+    imwrite("Q4 Serial.png", Result);
     return execution_time;
 }
 
@@ -74,7 +74,7 @@ int __attach_parallel(Mat Img1, Mat Img2, Mat Result) {
 	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
     printf("Parallel Method:\n");
 	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q2 Parallel.png", Result);
+    imwrite("Q4 Parallel.png", Result);
 	return execution_time;
 
 }

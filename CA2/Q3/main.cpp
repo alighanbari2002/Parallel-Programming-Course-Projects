@@ -37,7 +37,7 @@ int __diff_serial(Mat A, Mat B) {
 	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
 	printf("Serial Method:\n");
 	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q1 Serial.png", D);
+    imwrite("Q3 Serial.png", D);
 	return execution_time;
 }
 
@@ -72,7 +72,7 @@ int __diff_parallel(Mat A, Mat B) {
 	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
 	printf("Parallel Method:\n");
 	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q1 Parallel.png", D);
+    imwrite("Q3 Parallel.png", D);
 	return execution_time;
 }
 
