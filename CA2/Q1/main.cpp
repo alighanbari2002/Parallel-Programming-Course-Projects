@@ -95,7 +95,6 @@ long int find_min_serial(float* array, size_t size) {
 
 	gettimeofday(&end, NULL);
 
-    // Calculate the execution time in microseconds
 	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);	
 	printf("Serial Method:\n");
 	printf("\t- Min value: %f\n", min_element);
@@ -116,32 +115,23 @@ long int find_min_parallel(float* array, size_t size) {
 
     gettimeofday(&start, NULL);
 
-    // Parallelize the loop
     for (size_t i = 0; i < size; i += 4) {
-        // Load 4 elements from the array into a vector
         value = _mm_loadu_ps(&array[i]);
 
-        // Compare the loaded elements to the current minimum elements
         lt = _mm_cmpgt_ps(min_elements, value);
-
-        // Select the smaller elements and their indices
         min_elements = _mm_blendv_ps(min_elements, value, lt);
         min_indexes = _mm_blendv_ps(min_indexes, indexes, lt);
 
-        // Increment the indices
         indexes = _mm_add_ps(indexes, increment);
     }
 
-    // Store the minimum elements and indices
     float array_values[4], array_indexes[4];
     _mm_storeu_ps(array_values, min_elements);
     _mm_storeu_ps(array_indexes, min_indexes);
 
-    // Find the minimum element and index
     float min_element = array_values[0];
     int min_index = (int) array_indexes[0];
 
-    // Check if any of the other elements are smaller
     for (size_t i = 1; i < 4; i++) {
         if (array_values[i] < min_element) {
             min_element = array_values[i];
@@ -149,11 +139,9 @@ long int find_min_parallel(float* array, size_t size) {
         }
     }
 
-    // Calculate the execution time in microseconds
     gettimeofday(&end, NULL);
     long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
 
-    // Print the results
     printf("Parallel Method:\n");
     printf("\t- Min value: %f\n", min_element);
     printf("\t- Min index: %d\n", min_index);
@@ -175,6 +163,7 @@ int main() {
 	long int parallel_execution_time = find_min_parallel(array, ARRAY_SIZE);
 
 	printf("Speed up: %.2f\n", (float)serial_execution_time / (float)parallel_execution_time);
-    
+	delete array;
+	
 	return 0;
 }
