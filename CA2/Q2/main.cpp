@@ -25,8 +25,7 @@ void generate_random_array(float* arr, size_t size) {
 	}
 }
 
-long int find_average_and_std_serial(float* array, size_t size)
-{
+long int find_average_and_std_serial(float* array, size_t size) {
 	struct timeval start, end;
 	
 	gettimeofday(&start, NULL);
@@ -77,42 +76,48 @@ long int find_average_and_std_serial(float* array, size_t size)
 	return execution_time;
 }
 
-long int find_average_and_std_parallel(float* array, size_t size)
-{
-  struct timeval start, end;
+long int find_average_and_std_parallel(float array[], size_t size) {
+	struct timeval start, end;
+	
+	gettimeofday(&start, NULL);
 
-  gettimeofday(&start, NULL);
+	// Average
+	float average;
+	__m128 value;
+	__m128 sum = _mm_set1_ps(0);
+	for (size_t i = 0; i < size; i += 4)
+	{
+		value = _mm_loadu_ps(&array[i]);
+		sum = _mm_add_ps(sum, value);
+	}
+	sum = _mm_hadd_ps(sum, sum);
+	sum = _mm_hadd_ps(sum, sum);
+	average = (_mm_cvtss_f32(sum)) / size;
 
-  __m128 average_register = _mm_set1_ps(0.0f);
-  __m128 std_dev_register = _mm_set1_ps(0.0f);
+	// Standard Deviation
+	float standard_deviation;
+	sum = _mm_set1_ps(0);
+	__m128 average_register = _mm_set1_ps(average);
+	for (size_t i = 0; i < size; i += 4)
+	{
+		value = _mm_loadu_ps(&array[i]);
+		value = _mm_sub_ps(value, average_register);
+		value = _mm_mul_ps(value, value);
+		sum = _mm_add_ps(sum, value);
+	}
+	sum = _mm_hadd_ps(sum, sum);
+	sum = _mm_hadd_ps(sum, sum);
+	standard_deviation = (_mm_cvtss_f32(sum)) / size;
+	standard_deviation = sqrt(standard_deviation);
 
-  for (size_t i = 0; i < size; i += 4) {
-    __m128 value = _mm_loadu_ps(&array[i]);
+	gettimeofday(&end, NULL);
 
-    average_register = _mm_add_ps(average_register, value);
-    std_dev_register = _mm_add_ps(std_dev_register, _mm_mul_ps(_mm_sub_ps(value, average_register), _mm_sub_ps(value, average_register)));
-  }
-
-  average_register = _mm_hadd_ps(average_register, average_register);
-  average_register = _mm_hadd_ps(average_register, average_register);
-  std_dev_register = _mm_hadd_ps(std_dev_register, std_dev_register);
-  std_dev_register = _mm_hadd_ps(std_dev_register, std_dev_register);
-
-  float average = _mm_cvtss_f32(average_register) / size;
-  float standard_deviation = sqrt(_mm_cvtss_f32(std_dev_register) / size);
-
-  gettimeofday(&end, NULL);
-
-  long
- 
-int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
-
-  printf("Parallel Method:\n");
-  printf("\t- Average: %f\n", average);
-  printf("\t- Standard Deviation: %f\n", standard_deviation);
-  printf("\t- Execution time in microseconds: %ld\n\n", execution_time);
-
-  return execution_time;
+	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
+	printf("Parallel Method:\n");
+	printf("\tAverage: %f\n", average);
+	printf("\tStandard Deviation: %f\n", standard_deviation);
+	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
+	return execution_time;
 }
 
 int main() {
