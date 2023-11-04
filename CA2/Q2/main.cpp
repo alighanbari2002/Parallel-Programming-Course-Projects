@@ -10,6 +10,7 @@
 #else
 #include <x86intrin.h>
 #endif
+#include <ctime>
 
 #define ARRAY_SIZE 1048576
 
@@ -28,7 +29,9 @@ void generate_random_array(float* arr, size_t size) {
 long int find_average_and_std_serial(float* array, size_t size) {
 	struct timeval start, end;
 	
+	clock_t sserial, eserial;
 	gettimeofday(&start, NULL);
+	sserial = clock();
 
 	float sums[4] = {0}, average;
 	for (size_t i = 0; i < size; i += 4)
@@ -65,6 +68,7 @@ long int find_average_and_std_serial(float* array, size_t size) {
 	}
 	standard_deviation = sqrt(((sums[3] + sums[2]) + (sums[1] + sums[0])) / size);
 
+	eserial = clock();
 	gettimeofday(&end, NULL);
 
 	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);	
@@ -73,13 +77,15 @@ long int find_average_and_std_serial(float* array, size_t size) {
 	printf("\t- Standard Deviation: %f\n", standard_deviation);
 	printf("\t- Execution time in microseconds: %ld\n\n", execution_time);
 
-	return execution_time;
+	return eserial-sserial;
 }
 
 long int find_average_and_std_parallel(float array[], size_t size) {
 	struct timeval start, end;
 	
+	clock_t sparallel, eparallel;
 	gettimeofday(&start, NULL);
+	sparallel = clock();
 
 	// Average
 	float average;
@@ -110,6 +116,7 @@ long int find_average_and_std_parallel(float array[], size_t size) {
 	standard_deviation = (_mm_cvtss_f32(sum)) / size;
 	standard_deviation = sqrt(standard_deviation);
 
+	eparallel = clock();
 	gettimeofday(&end, NULL);
 
 	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
@@ -117,7 +124,7 @@ long int find_average_and_std_parallel(float array[], size_t size) {
 	printf("\tAverage: %f\n", average);
 	printf("\tStandard Deviation: %f\n", standard_deviation);
 	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-	return execution_time;
+	return eparallel-sparallel;
 }
 
 int main() {
@@ -130,11 +137,11 @@ int main() {
 	generate_random_array(array, ARRAY_SIZE);
 
     
-	long int serial_execution_time = find_average_and_std_serial(array, ARRAY_SIZE);
-	long int parallel_execution_time = find_average_and_std_parallel(array, ARRAY_SIZE);
+	long int serial_clocks = find_average_and_std_serial(array, ARRAY_SIZE);
+	long int parallel_clocks = find_average_and_std_parallel(array, ARRAY_SIZE);
 
-	printf("Speed up: %.2f\n", ((float)serial_execution_time/(float)parallel_execution_time));
-	
+	printf("Speedup:\n\t"
+       "- %0.4f\n", (float)(serial_clocks) / (float)((parallel_clocks)));	
     delete array;
 
 	return 0;

@@ -1,0 +1,6 @@
+Serial Result:
+	- 0.005189 seconds
+Parallel Result:
+	- 0.001068 seconds
+Speedup:
+	- 4.8659

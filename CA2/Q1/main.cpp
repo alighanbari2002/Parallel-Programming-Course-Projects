@@ -11,6 +11,8 @@
 #include <x86intrin.h>
 #endif
 
+#include <ctime>
+
 #define ARRAY_SIZE 1048576
 
 void generate_random_array(float* arr, size_t size) {
@@ -31,8 +33,10 @@ long int find_min_serial(float* array, size_t size) {
 	int min_indexes[4];
 	float min_element;
 	int min_index;
+	clock_t sserial, eserial;
 
 	gettimeofday(&start, NULL);
+	sserial = clock();
 
 	min_elements[0] = array[0];
 	min_indexes[0] = 0;
@@ -93,6 +97,7 @@ long int find_min_serial(float* array, size_t size) {
 		}
 	}
 
+	eserial = clock();
 	gettimeofday(&end, NULL);
 
 	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);	
@@ -101,7 +106,7 @@ long int find_min_serial(float* array, size_t size) {
 	printf("\t- Min index: %d\n", min_index);
 	printf("\t- Execution time in microseconds: %ld\n\n", execution_time);
 
-	return execution_time;
+	return eserial-sserial;
 }
 
 long int find_min_parallel(float* array, size_t size) {
@@ -112,8 +117,10 @@ long int find_min_parallel(float* array, size_t size) {
     __m128 indexes = _mm_setr_ps(0, 1, 2, 3);
     __m128 min_indexes = _mm_setr_ps(0, 1, 2, 3);
     __m128 value, lt;
+	clock_t sparallel, eparallel;
 
     gettimeofday(&start, NULL);
+	sparallel = clock();
 
     for (size_t i = 0; i < size; i += 4) {
         value = _mm_loadu_ps(&array[i]);
@@ -139,6 +146,7 @@ long int find_min_parallel(float* array, size_t size) {
         }
     }
 
+	eparallel = clock();
     gettimeofday(&end, NULL);
     long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
 
@@ -147,7 +155,7 @@ long int find_min_parallel(float* array, size_t size) {
     printf("\t- Min index: %d\n", min_index);
     printf("\t- Execution time in microseconds: %ld\n\n", execution_time);
 
-    return execution_time;
+    return eparallel-sparallel;
 }
 
 int main() {
@@ -159,10 +167,11 @@ int main() {
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	long int serial_execution_time = find_min_serial(array, ARRAY_SIZE);
-	long int parallel_execution_time = find_min_parallel(array, ARRAY_SIZE);
+	long int serial_clocks = find_min_serial(array, ARRAY_SIZE);
+	long int parallel_clocks = find_min_parallel(array, ARRAY_SIZE);
 
-	printf("Speed up: %.2f\n", (float)serial_execution_time / (float)parallel_execution_time);
+	printf("Speedup:\n\t"
+       "- %0.4f\n", (float)(serial_clocks) / (float)((parallel_clocks)));
 	delete array;
 	
 	return 0;
