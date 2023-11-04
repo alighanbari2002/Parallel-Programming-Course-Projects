@@ -1,102 +1,138 @@
-#include <opencv4/opencv2/highgui/highgui.hpp>
-#include <opencv4/opencv2/imgproc/imgproc.hpp>
-#include <opencv4/opencv2/core.hpp>
-#include <stdio.h>
-#include <x86intrin.h>
+#include <string>
+#include <vector>
 #include <sys/time.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <x86intrin.h>
+#include <tmmintrin.h>
+#include <emmintrin.h>
+#include <ctime>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 
-using namespace std;
+#define M128_GRAY_INTERVAL 16
+#define MIL 1000000
+
 using namespace cv;
 
-#define FIRST_IMAGE "./assets/front.png"
-#define SECOND_IMAGE "./assets/logo.png"
-
-int __attach_serial(Mat Img1, Mat Img2, Mat Result) {
-    struct timeval start, end;
-    
-    int NCOLS = Img1.cols;
-    int NROWS_2 = Img2.rows;
-    int NCOLS_2 = Img2.cols;
-    
-    uint8_t* D1 = (uint8_t*)Img1.data;
-    uint8_t* D2 = (uint8_t*)Img2.data;
-    uint8_t* R = (uint8_t*)Result.data;
-
-    gettimeofday(&start, NULL);
-    for(int i = 0; i < NROWS_2; i++) {
-        for(int j = 0; j < NCOLS_2; j++) {
-            int p1 = i * NCOLS + j;
-            int p2 = i * NCOLS_2 + j;
-            R[p1] = (D1[p1] + D2[p2]) >> 2;
-        }
-    }
-    gettimeofday(&end, NULL);
-
-    long seconds = (end.tv_sec - start.tv_sec);
-	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
-    printf("Serial Method:\n");
-	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q4 Serial.png", Result);
-    return execution_time;
-}
-
-int __attach_parallel(Mat Img1, Mat Img2, Mat Result) {
-    struct timeval start, end;
-
-    int NCOLS = Img1.cols;
-    int NROWS_2 = Img2.rows;
-    int NCOLS_2 = Img2.cols;
-
-    __m128i* D1 = (__m128i*) Img1.data;
-    __m128i* D2 = (__m128i*) Img2.data;
-    __m128i* R = (__m128i*) Result.data;
-
-    __m128i N = _mm_set1_epi8(63);
-	__m128i im1, im2, res;
-    gettimeofday(&start, NULL);
-    for (int i = 0; i < NROWS_2; i++) {
-        for (int j = 0; j < NCOLS_2 / 16; j++) {
-            int p1 = i * (NCOLS / 16) + j;
-            int p2 = i * (NCOLS_2 / 16) + j;
-
-            im1 = _mm_loadu_si128(D1 + p1);
-            im2 = _mm_loadu_si128(D2 + p2);
-            im2 = im2 >> 2;
-            im2 = _mm_and_si128(N, im2);
-            res = _mm_adds_epu8(im1, im2);
-            _mm_store_si128(R + p1, res);
-        }
-    }
-    gettimeofday(&end, NULL);
-
-    long seconds = (end.tv_sec - start.tv_sec);
-	long int execution_time = ((seconds * 1000000) + end.tv_usec) - (start.tv_usec);
-    printf("Parallel Method:\n");
-	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-    imwrite("Q4 Parallel.png", Result);
-	return execution_time;
-
-}
-
-int main() {
-        // Show group members
+int main()
+{
+    // Show Group Members
     printf("Group Members:\n");
     printf("\t- Ali Ghanbari [810199473]\n");
     printf("\t- Behrad Elmi  [810199557]\n\n");
+    struct timeval start, end;
+    std::string logo = "./assets/logo.png";
+    std::string front = "./assets/front.png";
+    clock_t sserial, eserial, sparallel, eparallel;
 
-    Mat Img1 = imread(FIRST_IMAGE, IMREAD_GRAYSCALE);
-    Mat Img2 = imread(SECOND_IMAGE, IMREAD_GRAYSCALE);
-    Mat Result = imread(FIRST_IMAGE, IMREAD_GRAYSCALE);
+    Mat limg = imread(logo, IMREAD_GRAYSCALE);
+    Mat fimg = imread(front, IMREAD_GRAYSCALE);
+    uchar* l_ptr; 
+    uchar* f_ptr; 
+    const int HIGH_COL = limg.cols > fimg.cols ? limg.cols : fimg.cols;
+    const int HIGH_ROW = limg.rows > fimg.rows ? limg.rows : fimg.rows;
+    const int LOW_COL = limg.cols < fimg.cols ? limg.cols : fimg.cols;
+    const int LOW_ROW = limg.rows < fimg.rows ? limg.rows : fimg.rows;
+    
 
-    if (Img1.empty() || Img2.empty()) {
-        printf("Error reading images.");
-        return -1;
+    // Sequential
+    gettimeofday(&start, NULL);
+    sserial = clock();
+    for(int i = 0; i < HIGH_ROW; i++)
+    {
+        l_ptr = limg.ptr<uchar>(i);
+        f_ptr = fimg.ptr<uchar>(i);
+        for(int j = 0; j < HIGH_COL; j++)
+        {
+            if(i > LOW_ROW || j > LOW_COL)
+            {
+                continue;
+            }
+            else
+            {
+                if((int)(3*f_ptr[j]/4 + l_ptr[j]/4) > 255)
+                {
+                    f_ptr[j] = 255;
+                }
+                else
+                {
+                    f_ptr[j] = 3*f_ptr[j]/4 + l_ptr[j]/4; 
+                }
+            }
+        }
     }
+    eserial = clock();
+    gettimeofday(&end, NULL);
+    printf("Serial Result:\n\t"
+       "- %0.6lf seconds\n",
+       (double)(MIL*(end.tv_sec - start.tv_sec) +
+       end.tv_usec - start.tv_usec) / MIL);
 
-	long int ST = __attach_serial(Img1, Img2, Result);
-	long int PT = __attach_parallel(Img1, Img2, Result);
-	printf("Speed up: %.2f\n", ((float)ST/(float)PT));
+    cv::namedWindow("Sequential", WINDOW_AUTOSIZE);
+    imshow("Sequential", fimg);
+    imwrite("Q4 Serial.png", fimg);
+    
+    // Free allocated memory and matrices
+    limg.release();
+    fimg.release();
+
+    // Parallel
+    Mat plimg = imread(logo, IMREAD_GRAYSCALE);
+    Mat pfimg = imread(front, IMREAD_GRAYSCALE);
+
+    __m128i_u pf, pl, pftemp;
+    
+    gettimeofday(&start, NULL);
+    sparallel = clock();
+    for(int i = 0; i < HIGH_ROW; i++)
+    {
+        for(int j = 0; j < HIGH_COL; j+= 16)
+        {
+            if(i > LOW_ROW || j > LOW_COL-16)
+            {
+                continue;
+            }
+            else
+            {
+                pf = _mm_loadu_si128(reinterpret_cast<__m128i*>(
+                    pfimg.data + (i * pfimg.cols) + j));
+                pl = _mm_loadu_si128(reinterpret_cast<__m128i*>(
+                    plimg.data + (i * plimg.cols) + j));
+                
+                // Divide by 4 
+                // 00 --> xxxx xxxx xxxx xx --> xx
+                // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
+                pl = _mm_srli_epi16(pl, 2);
+                pf = _mm_srli_epi16(pf, 2);
+                pl = _mm_and_si128(pl, _mm_set1_epi16(0xFF3F));
+                pf = _mm_and_si128(pf, _mm_set1_epi16(0xFF3F));
+                pftemp = pf;
+                
+                // Multiply front by 3 achieving 0.75
+                // x <-- xxx xxxx xxxx xxxx <--0
+                // xxxx xxxx xxxx xxx0
+                // xxxx xxx0 xxxx xxx0
+                pf = _mm_slli_epi16(pf, 1);
+                pf = _mm_and_si128(pf, _mm_set1_epi16(0xFEFF));
+                pf = _mm_add_epi8(pf, pftemp);
+
+                _mm_storeu_si128(reinterpret_cast<__m128i*>(
+                    pfimg.data + (i * pfimg.cols) + j), _mm_add_epi8(pl, pf));
+            }
+        }
+    }
+    eparallel = clock();
+    gettimeofday(&end, NULL);
+    cv::namedWindow("Parallel", WINDOW_AUTOSIZE);
+    imshow("Parallel", pfimg);
+    imwrite("Q4 Parallel.png", pfimg);
+    printf("Parallel Result:\n\t"
+           "- %0.6lf seconds\n",
+           (double)(MIL*(end.tv_sec - start.tv_sec) +
+           end.tv_usec - start.tv_usec) / MIL);
+    printf("Speedup:\n\t"
+           "- %0.4f\n", (float)(eserial-sserial) / (float)((eparallel-sparallel)));
+    waitKey(0);
 
     return 0;
 }
