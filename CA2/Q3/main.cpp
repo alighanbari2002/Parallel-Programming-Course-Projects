@@ -10,15 +10,15 @@
 
 #define M128_GRAY_INTERVAL 16
 #define MIL 1000000
-#define OUTDIR "./out/"
+#define OUTDIR "../out/"
 
 using namespace cv;
 
 int main()
 {
     struct timeval start, end;
-    std::string first_frame = "./assets/1.png";
-    std::string second_frame = "./assets/2.png";
+    std::string first_frame = "../assets/1.png";
+    std::string second_frame = "../assets/2.png";
     clock_t sserial, eserial, sparallel, eparallel;
 
     // Load frames

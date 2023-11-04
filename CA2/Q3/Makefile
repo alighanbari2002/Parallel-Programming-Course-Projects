@@ -32,10 +32,7 @@ pre_build:
 
 build: $(PATH_BIN)/$(OUT_EXE)
 
-$(PATH_BIN)/$(OUT_EXE): $(PATH_OBJ)/main.o
-	$(CXX) $< -o $@
-
-$(PATH_OBJ)/%.o: %.cpp
+$(PATH_BIN)/$(OUT_EXE): main.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@ $(INCDIR) $(LIBFILE)
 
 clean: clean-obj clean-exe delete-bin
