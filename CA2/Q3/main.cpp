@@ -11,19 +11,19 @@
 #define M128_GRAY_INTERVAL 16
 #define MIL 1000000
 #define OUTDIR "../out/"
+#define FIRST_IMG "../assets/1.png"
+#define SECOND_IMG "../assets/2.png"
 
 using namespace cv;
 
 int main()
 {
     struct timeval start, end;
-    std::string first_frame = "../assets/1.png";
-    std::string second_frame = "../assets/2.png";
     clock_t sserial, eserial, sparallel, eparallel;
 
     // Load frames
-    Mat img1 = imread(first_frame, IMREAD_GRAYSCALE);
-    Mat img2 = imread(second_frame, IMREAD_GRAYSCALE);
+    Mat img1 = imread(FIRST_IMG, IMREAD_GRAYSCALE);
+    Mat img2 = imread(SECOND_IMG, IMREAD_GRAYSCALE);
     if (img1.size() != img2.size())
     {
         printf("Illegal frames\n");
@@ -69,8 +69,8 @@ int main()
     imwrite(OUTDIR "Q3 Serial.png", seq_res);
     
     // Parallel
-    Mat pimg1 = imread(first_frame, IMREAD_GRAYSCALE);
-    Mat pimg2 = imread(second_frame, IMREAD_GRAYSCALE);
+    Mat pimg1 = imread(FIRST_IMG, IMREAD_GRAYSCALE);
+    Mat pimg2 = imread(SECOND_IMG, IMREAD_GRAYSCALE);
     __m128i p1, p2, diff12, diff21, diff;
 
     gettimeofday(&start, NULL);

@@ -12,6 +12,8 @@
 #define M128_GRAY_INTERVAL 16
 #define MIL 1000000
 #define OUTDIR "../out/"
+#define LOGO_IMG "../assets/logo.png"
+#define FRONT_IMG "../assets/front.png"
 
 using namespace cv;
 
@@ -22,12 +24,10 @@ int main()
     printf("\t- Ali Ghanbari [810199473]\n");
     printf("\t- Behrad Elmi  [810199557]\n\n");
     struct timeval start, end;
-    std::string logo = "../assets/logo.png";
-    std::string front = "../assets/front.png";
     clock_t sserial, eserial, sparallel, eparallel;
 
-    Mat limg = imread(logo, IMREAD_GRAYSCALE);
-    Mat fimg = imread(front, IMREAD_GRAYSCALE);
+    Mat limg = imread(LOGO_IMG, IMREAD_GRAYSCALE);
+    Mat fimg = imread(FRONT_IMG, IMREAD_GRAYSCALE);
     uchar* l_ptr; 
     uchar* f_ptr; 
     const int HIGH_COL = limg.cols > fimg.cols ? limg.cols : fimg.cols;
@@ -78,8 +78,8 @@ int main()
     fimg.release();
 
     // Parallel
-    Mat plimg = imread(logo, IMREAD_GRAYSCALE);
-    Mat pfimg = imread(front, IMREAD_GRAYSCALE);
+    Mat plimg = imread(LOGO_IMG, IMREAD_GRAYSCALE);
+    Mat pfimg = imread(FRONT_IMG, IMREAD_GRAYSCALE);
 
     __m128i_u pf, pl, pftemp;
     
