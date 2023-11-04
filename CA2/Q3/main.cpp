@@ -10,6 +10,7 @@
 
 #define M128_GRAY_INTERVAL 16
 #define MIL 1000000
+#define OUTDIR "./out/"
 
 using namespace cv;
 
@@ -65,7 +66,7 @@ int main()
        end.tv_usec - start.tv_usec) / MIL);
     cv::namedWindow("Serial", cv::WINDOW_AUTOSIZE);
     imshow("Serial", seq_res);
-    imwrite("Q3 Serial.png", seq_res);
+    imwrite(OUTDIR "Q3 Serial.png", seq_res);
     
     // Parallel
     Mat pimg1 = imread(first_frame, IMREAD_GRAYSCALE);
@@ -94,9 +95,10 @@ int main()
            end.tv_usec - start.tv_usec) / MIL);
     cv::namedWindow("Parallel", cv::WINDOW_AUTOSIZE);
     imshow("Parallel", pimg1);
+    imwrite(OUTDIR "Q3 Parallel.png", pimg1);
+    
     printf("Speedup:\n\t"
        "- %0.4f\n", (float)(eserial-sserial) / (float)((eparallel-sparallel)));
-    imwrite("Q3 Parallel.png", pimg1);
     waitKey(0);
 
     return 0;

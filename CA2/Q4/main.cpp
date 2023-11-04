@@ -11,6 +11,7 @@
 
 #define M128_GRAY_INTERVAL 16
 #define MIL 1000000
+#define OUTDIR "./out/"
 
 using namespace cv;
 
@@ -70,7 +71,7 @@ int main()
 
     cv::namedWindow("Sequential", WINDOW_AUTOSIZE);
     imshow("Sequential", fimg);
-    imwrite("Q4 Serial.png", fimg);
+    imwrite(OUTDIR "Q4 Serial.png", fimg);
     
     // Free allocated memory and matrices
     limg.release();
@@ -121,7 +122,8 @@ int main()
     gettimeofday(&end, NULL);
     cv::namedWindow("Parallel", WINDOW_AUTOSIZE);
     imshow("Parallel", pfimg);
-    imwrite("Q4 Parallel.png", pfimg);
+    imwrite(OUTDIR "Q4 Parallel.png", pfimg);
+
     printf("Parallel Result:\n\t"
            "- %0.6lf seconds\n",
            (double)(MIL*(end.tv_sec - start.tv_sec) +
