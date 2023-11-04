@@ -3,8 +3,8 @@ Group Members:
 	- Behrad Elmi  [810199557]
 
 Serial Result:
-	- 0.000903 seconds
+	- 0.000885 seconds
 Parallel Result:
-	- 0.000108 seconds
+	- 0.000072 seconds
 Speedup:
-	- 8.5094
+	- 12.4366

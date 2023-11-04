@@ -51,13 +51,13 @@ int main()
             }
             else
             {
-                if((int)(3*f_ptr[j]/4 + l_ptr[j]/4) > 255)
+                if((unsigned)(f_ptr[j]) + (unsigned)(l_ptr[j])*(0.25) > (unsigned)(255))
                 {
                     f_ptr[j] = 255;
                 }
                 else
                 {
-                    f_ptr[j] = 3*f_ptr[j]/4 + l_ptr[j]/4; 
+                    f_ptr[j] = f_ptr[j] + l_ptr[j]/4; 
                 }
             }
         }
@@ -81,7 +81,7 @@ int main()
     Mat plimg = imread(LOGO_IMG, IMREAD_GRAYSCALE);
     Mat pfimg = imread(FRONT_IMG, IMREAD_GRAYSCALE);
 
-    __m128i_u pf, pl, pftemp;
+    __m128i_u pf, pl/*, pftemp*/;
     
     gettimeofday(&start, NULL);
     sparallel = clock();
@@ -91,30 +91,30 @@ int main()
         {
             if(i <= LOW_ROW && j <= LOW_COL-M128_GRAY_INTERVAL)
             {
-                pf = _mm_loadu_si128(reinterpret_cast<__m128i*>(
+                pf = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(
                     pfimg.data + (i * pfimg.cols) + j));
-                pl = _mm_loadu_si128(reinterpret_cast<__m128i*>(
+                pl = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(
                     plimg.data + (i * plimg.cols) + j));
                 
                 // Divide by 4 
                 // 00 --> xxxx xxxx xxxx xx --> xx
                 // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
                 pl = _mm_srli_epi16(pl, 2);
-                pf = _mm_srli_epi16(pf, 2);
+                // pf = _mm_srli_epi16(pf, 2);
                 pl = _mm_and_si128(pl, _mm_set1_epi16(0xFF3F));
-                pf = _mm_and_si128(pf, _mm_set1_epi16(0xFF3F));
-                pftemp = pf;
+                // pf = _mm_and_si128(pf, _mm_set1_epi16(0xFF3F));
+                // pftemp = pf;
                 
                 // Multiply front by 3 achieving 0.75
                 // x <-- xxx xxxx xxxx xxxx <--0
                 // xxxx xxxx xxxx xxx0
                 // xxxx xxx0 xxxx xxx0
-                pf = _mm_slli_epi16(pf, 1);
-                pf = _mm_and_si128(pf, _mm_set1_epi16(0xFEFF));
-                pf = _mm_add_epi8(pf, pftemp);
+                // pf = _mm_slli_epi16(pf, 1);
+                // pf = _mm_and_si128(pf, _mm_set1_epi16(0xFEFF));
+                // pf = _mm_add_epi8(pf, pftemp);
 
-                _mm_storeu_si128(reinterpret_cast<__m128i*>(
-                    pfimg.data + (i * pfimg.cols) + j), _mm_add_epi8(pl, pf));
+                _mm_storeu_si128(reinterpret_cast<__m128i_u*>(
+                    pfimg.data + (i * pfimg.cols) + j), _mm_adds_epu8(pl, pf));
             }
         }
     }
