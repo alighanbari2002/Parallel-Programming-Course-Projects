@@ -10,7 +10,7 @@
 #else
 #include <x86intrin.h>
 #endif
-#include <ctime>
+
 
 #define ARRAY_SIZE 1048576
 

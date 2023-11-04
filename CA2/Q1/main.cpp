@@ -11,8 +11,6 @@
 #include <x86intrin.h>
 #endif
 
-#include <ctime>
-
 #define ARRAY_SIZE 1048576
 
 void generate_random_array(float* arr, size_t size) {
