@@ -86,13 +86,9 @@ int main()
     sparallel = clock();
     for(int i = 0; i < HIGH_ROW; i++)
     {
-        for(int j = 0; j < HIGH_COL; j+= 16)
+        for(int j = 0; j < HIGH_COL; j+= M128_GRAY_INTERVAL)
         {
-            if(i > LOW_ROW || j > LOW_COL-16)
-            {
-                continue;
-            }
-            else
+            if(i <= LOW_ROW && j <= LOW_COL-M128_GRAY_INTERVAL)
             {
                 pf = _mm_loadu_si128(reinterpret_cast<__m128i*>(
                     pfimg.data + (i * pfimg.cols) + j));
