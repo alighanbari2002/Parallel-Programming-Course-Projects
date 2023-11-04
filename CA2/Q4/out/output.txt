@@ -1,0 +1,10 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Serial Result:
+	- 0.000903 seconds
+Parallel Result:
+	- 0.000108 seconds
+Speedup:
+	- 8.5094

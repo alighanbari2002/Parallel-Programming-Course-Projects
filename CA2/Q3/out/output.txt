@@ -1,6 +1,6 @@
 Serial Result:
-	- 0.005189 seconds
+	- 0.005291 seconds
 Parallel Result:
-	- 0.001068 seconds
+	- 0.001008 seconds
 Speedup:
-	- 4.8659
+	- 5.2584
