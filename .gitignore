@@ -1,6 +1,8 @@
 # Folders
 .vscode
 bin/
+build/
+temp/
 
 # Prerequisites
 *.d
