@@ -1,22 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include <ipp.h>
-#include <sys/time.h>
-#include <time.h>
 #include <float.h>
 #include <math.h>
+#include <chrono>
 #ifdef 		_WIN32
 #include <intrin.h>
 #else
 #include <x86intrin.h>
 #endif
 
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::nanoseconds;
 
-#define ARRAY_SIZE 1048576
+#define ARRAY_SIZE 1048576 // 2 ^ 20
 
 void generate_random_array(float* arr, size_t size) {
 	float min = 0;
-	float max = pow(10, 6); 
+	float max = pow(10, 6);
 	float range = max - min;
 	
 	for (size_t i = 0; i < size; i++) {
@@ -26,14 +27,11 @@ void generate_random_array(float* arr, size_t size) {
 	}
 }
 
-long int find_average_and_std_serial(float* array, size_t size) {
-	struct timeval start, end;
-	
-	clock_t sserial, eserial;
-	gettimeofday(&start, NULL);
-	sserial = clock();
+double find_average_and_std_serial(float* array, size_t size) {
+	auto start = high_resolution_clock::now();
 
-	float sums[4] = {0}, average;
+	// Average
+	float sums[4] = {0.0}, average;
 	for (size_t i = 0; i < size; i += 4)
 		sums[0] += array[i];
 	for (size_t i = 1; i < size; i += 4)
@@ -43,56 +41,47 @@ long int find_average_and_std_serial(float* array, size_t size) {
 	for (size_t i = 3; i < size; i += 4)
 		sums[3] += array[i];
 	average = ((sums[0] + sums[1]) + (sums[2] + sums[3])) / size;
-	
-	sums[0] = sums[1] = sums[2] = sums[3] = 0;
+
+	// Standard Deviation
+	sums[0] = sums[1] = sums[2] = sums[3] = 0.0;
 	float standard_deviation, difference;
-	for (size_t i = 0; i < size; i += 4)
-	{
+	for (size_t i = 0; i < size; i += 4) {
 		difference = array[i] - average;
 		sums[0] += difference * difference;
 	}
-	for (size_t i = 1; i < size; i += 4)
-	{
+	for (size_t i = 1; i < size; i += 4) {
 		difference = array[i] - average;
 		sums[1] += difference * difference;
 	}
-	for (size_t i = 2; i < size; i += 4)
-	{
+	for (size_t i = 2; i < size; i += 4) {
 		difference = array[i] - average;
 		sums[2] += difference * difference;
 	}
-	for (size_t i = 3; i < size; i += 4)
-	{
+	for (size_t i = 3; i < size; i += 4) {
 		difference = array[i] - average;
 		sums[3] += difference * difference;
 	}
 	standard_deviation = sqrt(((sums[3] + sums[2]) + (sums[1] + sums[0])) / size);
 
-	eserial = clock();
-	gettimeofday(&end, NULL);
+	auto finish = high_resolution_clock::now();
+	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
-	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);	
-	printf("Serial Method:\n");
+	printf("\nSerial Method:\n");
 	printf("\t- Average: %f\n", average);
 	printf("\t- Standard Deviation: %f\n", standard_deviation);
-	printf("\t- Execution time in microseconds: %ld\n\n", execution_time);
+	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
 
-	return eserial-sserial;
+	return execution_time;
 }
 
-long int find_average_and_std_parallel(float array[], size_t size) {
-	struct timeval start, end;
-	
-	clock_t sparallel, eparallel;
-	gettimeofday(&start, NULL);
-	sparallel = clock();
+double find_average_and_std_parallel(float array[], size_t size) {
+	auto start = high_resolution_clock::now();
 
 	// Average
 	float average;
 	__m128 value;
 	__m128 sum = _mm_set1_ps(0);
-	for (size_t i = 0; i < size; i += 4)
-	{
+	for (size_t i = 0; i < size; i += 4) {
 		value = _mm_loadu_ps(&array[i]);
 		sum = _mm_add_ps(sum, value);
 	}
@@ -104,8 +93,7 @@ long int find_average_and_std_parallel(float array[], size_t size) {
 	float standard_deviation;
 	sum = _mm_set1_ps(0);
 	__m128 average_register = _mm_set1_ps(average);
-	for (size_t i = 0; i < size; i += 4)
-	{
+	for (size_t i = 0; i < size; i += 4) {
 		value = _mm_loadu_ps(&array[i]);
 		value = _mm_sub_ps(value, average_register);
 		value = _mm_mul_ps(value, value);
@@ -116,33 +104,35 @@ long int find_average_and_std_parallel(float array[], size_t size) {
 	standard_deviation = (_mm_cvtss_f32(sum)) / size;
 	standard_deviation = sqrt(standard_deviation);
 
-	eparallel = clock();
-	gettimeofday(&end, NULL);
+	auto finish = high_resolution_clock::now();
+	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
-	long int execution_time = (((end.tv_sec - start.tv_sec) * 1000000) + end.tv_usec) - (start.tv_usec);
-	printf("Parallel Method:\n");
-	printf("\tAverage: %f\n", average);
-	printf("\tStandard Deviation: %f\n", standard_deviation);
-	printf("\tExecution time in microseconds: %ld\n\n", execution_time);
-	return eparallel-sparallel;
+	printf("\nParallel Method:\n");
+	printf("\t- Average: %f\n", average);
+	printf("\t- Standard Deviation: %f\n", standard_deviation);
+    printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+
+    return execution_time;
+}
+
+void print_group_info() {
+    printf("Group Members:\n");
+	printf("\t- Ali Ghanbari [810199473]\n");
+	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
 int main() {
-	// Show group members
-    printf("Group Members:\n");
-	printf("\t- Ali Ghanbari [810199473]\n");
-	printf("\t- Behrad Elmi  [810199557]\n\n");
+	print_group_info();
 
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
-
     
-	long int serial_clocks = find_average_and_std_serial(array, ARRAY_SIZE);
-	long int parallel_clocks = find_average_and_std_parallel(array, ARRAY_SIZE);
+	double serial_time   = find_average_and_std_serial(array, ARRAY_SIZE);
+	double parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);
 
-	printf("Speedup:\n\t"
-       "- %0.4f\n", (float)(serial_clocks) / (float)((parallel_clocks)));	
-    delete array;
+	delete array;
+
+	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
 
 	return 0;
 }
