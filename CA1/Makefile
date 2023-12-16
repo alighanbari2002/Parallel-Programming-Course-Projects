@@ -1,16 +1,51 @@
-# make all
-glob:
-	@cd Q1 && make
-	@cd Q2 && make
+CLEAR_DIR_FLAG = --no-print-directory
+SUBDIRS := $(wildcard */.)
 
-# make run for each question
-run-Q1:
-	@cd Q1 && make run --no-print-directory
+define submake
+	@counter=1;                                             \
+	for d in $(SUBDIRS); do                                 \
+		if [ "$(MAKECMDGOALS)" = "run" ]; then              \
+			printf "===========\n";                         \
+			printf "Question #$$counter\n";                 \
+			printf "===========\n";                         \
+			$(MAKE) $(1) --directory=$$d $(CLEAR_DIR_FLAG); \
+		else                                                \
+			$(MAKE) $(1) --directory=$$d;                   \
+		fi;                                                 \
+		counter=$$((counter + 1));                          \
+	done
+endef
+#----------------------------------------------------------------
+all: ; $(call submake, $@)
 
-run-Q2:
-	@cd Q2 && make run --no-print-directory
+run:    ; $(call submake, $@)
+run-Q1: ; @$(MAKE) run --directory="Q1/" $(CLEAR_DIR_FLAG)
+run-Q2: ; @$(MAKE) run --directory="Q2/" $(CLEAR_DIR_FLAG)
 
-# make clean all
-clean:
-	@cd Q1 && make clean
-	@cd Q2 && make clean
+clean:    ; $(call submake, $@)
+clean-Q1: ; @$(MAKE) clean --directory="Q1/" $(CLEAR_DIR_FLAG)
+clean-Q2: ; @$(MAKE) clean --directory="Q2/" $(CLEAR_DIR_FLAG)
+
+report:    ; $(call submake, $@ $(CLEAR_DIR_FLAG))
+report-Q1: ; @$(MAKE) report --directory="Q1/" $(CLEAR_DIR_FLAG)
+report-Q2: ; @$(MAKE) report --directory="Q2/" $(CLEAR_DIR_FLAG)
+
+help:
+	@echo "Available targets:"
+	@echo "  all       - Build all executables"
+	@echo "  run       - Run all executables"
+	@echo "  run-Q1    - Run Q1 executable"
+	@echo "  run-Q2    - Run Q2 executable"
+	@echo "  report    - Generate reports for all executables"
+	@echo "  report-Q1 - Generate report for Q1 executable"
+	@echo "  report-Q2 - Generate report for Q2 executable"
+	@echo "  clean     - Clean all build artifacts"
+	@echo "  clean-Q1  - Clean Q1 build artifacts"
+	@echo "  clean-Q2  - Clean Q2 build artifacts"
+	@echo "  help      - Show this help message"
+#------------------------------------------------------------------------------------------
+.PHONY: all $(SUBDIRS) \
+		run run-Q1 run-Q2 \
+		report report-Q1 report-Q2 \
+		clean clean-Q1 clean-Q2 \
+		help
