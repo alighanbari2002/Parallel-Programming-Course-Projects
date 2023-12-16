@@ -69,12 +69,12 @@ double find_average_and_std_serial(float* array, size_t size) {
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }
 
-double find_average_and_std_parallel(float array[], size_t size) {
+double find_average_and_std_parallel(float* array, size_t size) {
 	auto start = high_resolution_clock::now();
 
 	// Average
@@ -110,7 +110,7 @@ double find_average_and_std_parallel(float array[], size_t size) {
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-    printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+    printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
     return execution_time;
 }
@@ -118,7 +118,7 @@ double find_average_and_std_parallel(float array[], size_t size) {
 void print_group_info() {
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
-	printf("\t- Behrad Elmi  [810199557]\n");
+	printf("\t- Run Elmi  [810199557]\n");
 }
 
 int main() {

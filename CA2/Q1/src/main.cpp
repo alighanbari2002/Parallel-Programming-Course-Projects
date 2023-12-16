@@ -90,7 +90,7 @@ double find_min_serial(float* array, size_t size) {
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }
@@ -134,7 +134,7 @@ double find_min_parallel(float* array, size_t size) {
     printf("\nParallel Method:\n");
     printf("\t- Min Value: %f\n", min_element);
     printf("\t- Min Index: %d\n", min_index);
-    printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+    printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
     return execution_time;
 }

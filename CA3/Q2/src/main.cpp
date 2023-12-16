@@ -54,12 +54,12 @@ double find_average_and_std_serial(double* array, size_t size) {
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4lf\n", average);
 	printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }
 
-double find_average_and_std_parallel(double array[], size_t size) {
+double find_average_and_std_parallel(double* array, size_t size) {
 	double sum = 0, average;
 	double sum_squared_diff = 0, difference, standard_deviation;
 	size_t i;
@@ -86,7 +86,7 @@ double find_average_and_std_parallel(double array[], size_t size) {
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4lf\n", average);
 	printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-    printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+    printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
     return execution_time;
 }

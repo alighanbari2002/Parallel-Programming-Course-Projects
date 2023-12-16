@@ -197,7 +197,7 @@ int main() {
 	b = _mm_load_ps(floatArray);
 
     printf("\nTesting \"print_spfp_vector\" Function:\n");
-    printf("\t- Content of the 128-bit register: ");
+    printf("\t- content of the 128-bit register: ");
 	print_spfp_vector(b);
 
     return 0;
