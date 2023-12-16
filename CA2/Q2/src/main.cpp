@@ -67,8 +67,8 @@ double find_average_and_std_serial(float* array, size_t size) {
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
 	printf("\nSerial Method:\n");
-	printf("\t- Average: %f\n", average);
-	printf("\t- Standard Deviation: %f\n", standard_deviation);
+	printf("\t- Average: %.4f\n", average);
+	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
 	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
@@ -108,8 +108,8 @@ double find_average_and_std_parallel(float array[], size_t size) {
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
 	printf("\nParallel Method:\n");
-	printf("\t- Average: %f\n", average);
-	printf("\t- Standard Deviation: %f\n", standard_deviation);
+	printf("\t- Average: %.4f\n", average);
+	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
     printf("\t- Execution Time (ns): %.4lf\n", execution_time);
 
     return execution_time;
