@@ -1,58 +1,43 @@
-# Paths
-PATH_BIN     := bin
-PATH_OBJ     := $(PATH_BIN)/obj
-PATH_OUT	 := out
+PATH_SRC    := src
+PATH_BIN    := bin
+PATH_OUTPUT := output
+PATH_LIB    := $(shell pkg-config --cflags opencv4)
 
-# Commands
-RM           := rm -f
-RMDIR        := rm -rf
-MKDIR        := @mkdir -p
+include common_vars.mk
 
-# Compiler
-CXX          := g++
-CXXFLAGS     := -std=c++11 -Wall -Wextra -Wno-sign-compare -g -msse4.1
-INCDIR       := -I/usr/include/opencv4 ## -I/opt/intel/ipp/include
-LIBDIR       := -L/opt/intel/ipp/lib
-LIBFILE      := $$(pkg-config --libs opencv4) ## -lippcore 
+LDFLAGS  += $(shell pkg-config --libs opencv4)
+LDLIBS   += # -l
+CPPFLAGS += $(PATH_LIB)
 
-# Output files
-OUT_EXE      := program
-OUT_TXT      := output.txt
-# ------------------------------------------------------------------
-.PHONY: all\
-		clean clean-obj clean-exe clean-out delete-bin\
-		run out\
-		help
+OUT_EXE := program.exe
+OUT_TXT := report.txt
+#------------------------------------------------------------------------------------------
+VPATH = $(PATH_SRC)
 
-all: pre_build build
+FILES   = $(patsubst src/%, %, $(shell find $(PATH_SRC) -name "*.cpp" -type f))
+FOLDERS = $(patsubst src/%, %, $(shell find $(PATH_SRC) -mindepth 1 -type d))
+#------------------------------------------------------------------------------------------
+all: directories $(PATH_BIN)/$(OUT_EXE)
 
-pre_build:
-	$(MKDIR) $(PATH_OBJ)
-	$(MKDIR) $(PATH_OUT)
+$(PATH_BIN)/$(OUT_EXE): $(FILES)
+	$(CXX) $(CPPFLAGS) $^ $(LDFLAGS) -o $@
+#------------------------------------------------------------------------------------------
+directories: $(PATH_BIN) $(PATH_OUTPUT)
 
-build: $(PATH_BIN)/$(OUT_EXE)
+$(PATH_BIN):    ; $(MKDIR) $@
+$(PATH_OUTPUT): ; $(MKDIR) $@
+#------------------------------------------------------------------------------------------
+.PHONY: all directories \
+		clean delete-output \
+		run report help
 
-$(PATH_BIN)/$(OUT_EXE): main.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@ $(INCDIR) $(LIBFILE)
+clean:         ; $(RM) $(PATH_BIN)/$(OUT_EXE)
+delete-output: ; (RMDIR) $(PATH_OUTPUT)
 
-clean: clean-obj clean-exe delete-bin
-
-clean-obj:
-	$(RM) $(PATH_OBJ)/*
-
-clean-exe:
-	$(RM) $(PATH_BIN)/$(OUT_EXE)
-
-clean-out:
-	$(RMDIR) $(PATH_OUT)
-
-delete-bin:
-	$(RMDIR) $(PATH_BIN)
-
-run: ; @cd $(PATH_BIN) && ./$(OUT_EXE)
-
-out: ; @cd $(PATH_BIN) && ./$(OUT_EXE) > ../$(PATH_OUT)/$(OUT_TXT)
+ARGS ?=
+run:    ; @cd $(PATH_BIN) && ./$(OUT_EXE) $(ARGS)
+report: ; @cd $(PATH_BIN) && ./$(OUT_EXE) $(ARGS) > ../$(PATH_OUTPUT)/$(OUT_TXT)
 
 help:
-	@echo Targets: all clean clean-obj clean-exe clean-out delete-bin run out
-# ------------------------------------------------------------------
+	@echo Targets: all clean delete-output run report
+	@echo '(make run ARGS="arg1 arg2...")'

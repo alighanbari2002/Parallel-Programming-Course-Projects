@@ -8,9 +8,9 @@ PATH_LIB    := lib
 
 include common_vars.mk
 
-LDFLAGS  += # L
+LDFLAGS  += -fopenmp
 LDLIBS   += # -l
-CPPFLAGS += -I.
+CPPFLAGS += -fopenmp
 
 OUT_EXE := program.exe
 OUT_TXT := report.txt

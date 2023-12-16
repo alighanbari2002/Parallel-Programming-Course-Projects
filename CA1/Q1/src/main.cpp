@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <sched.h>
 #include <unistd.h>
@@ -12,7 +11,6 @@
 #ifdef 		_WIN32					//  Windows
 #define 	cpuid    __cpuid
 #else								//  Linux
-
 void cpuid(int cpu_info[4], int info_type) {
 	__asm__ __volatile__(
 		"cpuid":
@@ -124,6 +122,8 @@ unsigned find_mask_width(unsigned int count_item) {
         "=r" (mask_width) :
         "r" (mask_width), "r" (cnt)
     );
+    
+    return mask_width;
 
     // other implementation
     // __asm__ volatile(
@@ -155,7 +155,6 @@ unsigned find_mask_width(unsigned int count_item) {
     //     "popl %ecx"
     //     #endif
     // );
-    return mask_width;
 }
 
 unsigned char get_initial_apic_ID(void) {
@@ -270,16 +269,19 @@ int get_num_active_cores() {
 	return core_num;	
 }
 
-int main() {
-	// Show group members
+void print_group_info() {
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
+}
+
+int main() {
+    print_group_info();
     
 	printf("\nProcessor Info:\n");
-	int info[4];
 
     // Get processor type
+	int info[4];
 	int processorType[12];
 	cpuid(processorType + 0x0, 0x80000002);
 	cpuid(processorType + 0x4, 0x80000003);
@@ -295,7 +297,6 @@ int main() {
     cpuid(info, 0x1);
     int logicalCores = (info[1] >> 16) & 0xFF;
     printf("\t- Logical Cores: %d\n", logicalCores);
-
 	printf("\t- Enabled/Active Cores: %d\n", get_num_active_cores());
 
     // Check if hyperthreading is supported
@@ -308,9 +309,10 @@ int main() {
     }
 
 	printf("\nCache Info:\n");
-
-	// Get cache information for cache level 1
+	
+    // Get cache information for cache level 1
     cpuid(info, 0x4 | (1 << 5)); // Set ECX to 1 to get cache level 1 information
+    
     // Extract cache type and cache size
     int cacheType = info[0] & 0x1F;
     int cacheSize = ((info[1] >> 22) & 0x3FF) * 1024; // Size in KB
@@ -318,7 +320,7 @@ int main() {
     printf("\t- L1 Cache Size: %d KB\n", cacheSize);
 
 	printf("\nSIMD Architecture Support:\n");
-
+    
     // Check for SIMD architecture support (MMX, SSE, SSE2, SSE3, etc.)
     unsigned short MMX   = 0;
 	unsigned short SSE   = 0;

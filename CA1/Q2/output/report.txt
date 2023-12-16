@@ -1,0 +1,16 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Testing "print_int_vector" Function:
+	- 16 unsigned bytes format: [FF, EE, DD, CC, BB, AA, 99, 88, 77, 66, 55, 44, 33, 22, 11, 0]
+	- 16 signed bytes format: [FFFFFFFF, FFFFFFEE, FFFFFFDD, FFFFFFCC, FFFFFFBB, FFFFFFAA, FFFFFF99, FFFFFF88, 77, 66, 55, 44, 33, 22, 11, 0]
+	- 8 unsigned words format: [FFEE, DDCC, BBAA, 9988, 7766, 5544, 3322, 1100]
+	- 8 signed words format: [FFFFFFEE, FFFFDDCC, FFFFBBAA, FFFF9988, 7766, 5544, 3322, 1100]
+	- 4 unsigned double words format: [FFEEDDCC, BBAA9988, 77665544, 33221100]
+	- 4 signed double words format: [FFEEDDCC, BBAA9988, 77665544, 33221100]
+	- 2 unsigned quad words format: [FFEEDDCCBBAA9988, 7766554433221100]
+	- 2 signed quad words format: [FFEEDDCCBBAA9988, 7766554433221100]
+
+Testing "print_spfp_vector" Function:
+	- Content of the 128-bit register: [7.000000, 1231231232.000000, -3.100000, -6763.399902]

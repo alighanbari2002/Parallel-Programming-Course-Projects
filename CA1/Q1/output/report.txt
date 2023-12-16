@@ -1,0 +1,26 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Processor Info:
+	- Type: 11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz
+	- Physical Cores: 8
+	- Logical Cores: 16
+	- Enabled/Active Cores: 16
+	- Hyperthreading is supported.
+
+Cache Info:
+	- Type: 0
+	- L1 Cache Size: 0 KB
+
+SIMD Architecture Support:
+	- MMX   is supported.
+	- SSE   is supported.
+	- SSE2  is supported.
+	- SSE3  is supported.
+	- SSE41 is supported.
+	- SSE42 is supported.
+	- AES   is supported.
+	- SHA   is not supported.
+	- AVX   is supported.
+	- AVX2  is not supported.

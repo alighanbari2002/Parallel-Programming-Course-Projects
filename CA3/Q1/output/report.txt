@@ -1,0 +1,15 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Serial Method:
+	- Min Value: 127283.054688
+	- Min Index: 0
+	- Execution Time (ns): 2086632.0000
+
+Serial Method:
+	- Min Value: 127283.054688
+	- Min Index: 0
+	- Execution Time (ns): 575906.0000
+
+Speedup: 3.6232
