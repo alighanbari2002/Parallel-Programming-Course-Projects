@@ -1,0 +1,15 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Serial Method:
+	- Average: 497682.4051
+	- Standard Deviation: 124641.7475
+	- Execution Time (ns): 4278234.0000
+
+Parallel Method:
+	- Average: 497682.4051
+	- Standard Deviation: 124641.7475
+	- Execution Time (ns): 915723.0000
+
+Speedup: 4.6720
