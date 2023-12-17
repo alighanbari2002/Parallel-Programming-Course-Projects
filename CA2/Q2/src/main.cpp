@@ -20,7 +20,7 @@ void generate_random_array(float* arr, size_t size) {
 	float max = pow(10, 6);
 	float range = max - min;
 	
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; ++i) {
 		srand(time(NULL));
 		float random =  ((float)rand()) / (float)RAND_MAX;
 		arr[i] = random * range + min;

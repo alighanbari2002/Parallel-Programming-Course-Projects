@@ -36,8 +36,8 @@ double serial_implementation() {
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; row++) {
-        for(size_t col = 0; col < FRONT_COL; col++) {
+    for(size_t row = 0; row < FRONT_ROW; ++row) {
+        for(size_t col = 0; col < FRONT_COL; ++col) {
             if(row <= LOGO_ROW && col <= LOGO_COL) {
                 if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
                     out_img_serial.at<uchar> (row, col) = 255;
@@ -68,7 +68,7 @@ double parallel_implementation() {
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; row++) {
+    for(size_t row = 0; row < FRONT_ROW; ++row) {
         for(size_t col = 0; col < FRONT_COL; col += M128_GRAY_INTERVAL) {
             
             logo_part  = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(&logo.at<uchar> (row, col)));

@@ -33,8 +33,8 @@ double serial_implementation() {
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < NROWS; row++) {
-        for(size_t col = 0; col < NCOLS; col++) {
+    for(size_t row = 0; row < NROWS; ++row) {
+        for(size_t col = 0; col < NCOLS; ++col) {
             out_img_serial.at<uchar> (row, col) = abs(
                 img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
                 );
@@ -59,7 +59,7 @@ double parallel_implementation() {
 
 	auto start = high_resolution_clock::now();
     
-    for (size_t row = 0; row < NROWS; row++) {
+    for (size_t row = 0; row < NROWS; ++row) {
         for (size_t col = 0; col < NCOLS; col += M128_GRAY_INTERVAL) {
             img1_part = _mm_loadu_si128(reinterpret_cast<__m128i*>(&img1.at<uchar> (row, col)));
             img2_part = _mm_loadu_si128(reinterpret_cast<__m128i*>(&img2.at<uchar> (row, col)));

@@ -242,9 +242,9 @@ int get_num_active_cores() {
     coreID_bucket[0] = tbl_packageID[0] | tbl_coreID[0];
     processor_mask = 1;
     pCore_processor_mask[0] = processor_mask;
-    for(processor_num = 1; processor_num < numLP_enabled; processor_num++) {
+    for(processor_num = 1; processor_num < numLP_enabled; ++processor_num) {
         processor_mask <<= 1;
-        for(i = 0; i < core_num; i++) {
+        for(i = 0; i < core_num; ++i) {
             //
             // we may be comparing bit-fields of logical processors
             // residing in different packages, the code below assumes

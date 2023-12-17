@@ -20,7 +20,7 @@ void generate_random_array(float* arr, size_t size) {
 	float max = pow(10, 6);
 	float range = max - min;
 	
-	for (size_t i = 0; i < size; i++) {
+	for (size_t i = 0; i < size; ++i) {
 		srand(time(NULL));
 		float random =  ((float)rand()) / (float)RAND_MAX;
 		arr[i] = random * range + min;
@@ -77,7 +77,7 @@ double find_min_serial(float* array, size_t size) {
 
 	min_element = min_elements[0];
 	min_index = min_indexes[0];
-	for (size_t i = 1; i < 4; i++) {
+	for (size_t i = 1; i < 4; ++i) {
 		if (min_elements[i] < min_element) {
 			min_element = min_elements[i];
 			min_index = min_indexes[i];
@@ -121,7 +121,7 @@ double find_min_parallel(float* array, size_t size) {
     float min_element = array_values[0];
     int min_index = (int) array_indexes[0];
 
-    for (size_t i = 1; i < 4; i++) {
+    for (size_t i = 1; i < 4; ++i) {
         if (array_values[i] < min_element) {
             min_element = array_values[i];
             min_index = (int) array_indexes[i];
