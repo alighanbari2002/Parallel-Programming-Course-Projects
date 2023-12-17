@@ -1,7 +1,10 @@
+#include <iostream>
+#include <random>
 #include <stdio.h>
 #include <stdlib.h>
-#include <float.h>
+#include <time.h>
 #include <math.h>
+#include <float.h>
 #include <chrono>
 #ifdef 		_WIN32
 #include <intrin.h>
@@ -9,6 +12,8 @@
 #include <x86intrin.h>
 #endif
 
+using std::default_random_engine; 
+using std::uniform_real_distribution;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
@@ -16,15 +21,12 @@ using std::chrono::nanoseconds;
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 
 void generate_random_array(float*& array, const size_t& size) {
-	float min = 0;
-	float max = pow(10, 6);
-	float range = max - min;
-	
+    default_random_engine generator(time(NULL));
+    uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+    
 	for (size_t i = 0; i < size; ++i) {
-		srand(time(NULL));
-		float random =  ((float)rand()) / (float)RAND_MAX;
-		array[i] = random * range + min;
-	}
+        array[i] = distribution(generator);
+    }
 }
 
 double find_min_serial(float*& array, const size_t& size) {
