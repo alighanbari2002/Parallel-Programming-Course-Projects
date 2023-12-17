@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+#include <type_traits>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #ifdef 		_WIN32
@@ -19,7 +20,7 @@ using cv::IMREAD_GRAYSCALE;
 #define OUTPUT_DIR  "../output/"
 #define ALPHA 0.25
 #define M128_GRAY_INTERVAL 16
-#define NUM_THREADS omp_get_max_threads()
+#define NUM_THREADS omp_get_max_threads() - 1
 
 // Global variables
 Mat logo;
@@ -65,7 +66,7 @@ double parallel_implementation() {
 
 	double start = omp_get_wtime();
 
-    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto) num_threads(NUM_THREADS)
+    #pragma omp parallel for simd default(shared) private(row, col) schedule(guided, 16) num_threads(NUM_THREADS) simdlen(16)
         for(row = 0; row < FRONT_ROW; ++row) {
             for(col = 0; col < FRONT_COL; ++col) {
                 if(row <= LOGO_ROW && col <= LOGO_COL) {
