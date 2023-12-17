@@ -18,7 +18,7 @@ using cv::IMREAD_GRAYSCALE;
 #define IMAGE_02   "../assets/image_02.png"
 #define OUTPUT_DIR "../output/"
 #define M128_GRAY_INTERVAL 16
-#define NUM_THREADS omp_get_max_threads()
+#define NUM_THREADS omp_get_max_threads() - 1
 
 // Global variables
 Mat img1;
