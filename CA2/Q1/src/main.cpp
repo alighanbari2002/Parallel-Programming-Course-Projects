@@ -15,7 +15,7 @@ using std::chrono::nanoseconds;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 
-void generate_random_array(float* arr, size_t size) {
+void generate_random_array(float*& array, const size_t& size) {
 	float min = 0;
 	float max = pow(10, 6);
 	float range = max - min;
@@ -23,11 +23,11 @@ void generate_random_array(float* arr, size_t size) {
 	for (size_t i = 0; i < size; ++i) {
 		srand(time(NULL));
 		float random =  ((float)rand()) / (float)RAND_MAX;
-		arr[i] = random * range + min;
+		array[i] = random * range + min;
 	}
 }
 
-double find_min_serial(float* array, size_t size) {
+double find_min_serial(float*& array, const size_t& size) {
 	float min_elements[4];
 	int min_indexes[4];
 	float min_element;
@@ -95,7 +95,7 @@ double find_min_serial(float* array, size_t size) {
 	return execution_time;
 }
 
-double find_min_parallel(float* array, size_t size) {
+double find_min_parallel(float*& array, const size_t& size) {
     __m128 min_elements = _mm_set1_ps(FLT_MAX);
     __m128 increment = _mm_set1_ps(4);
     __m128 indexes = _mm_setr_ps(0, 1, 2, 3);

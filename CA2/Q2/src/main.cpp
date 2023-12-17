@@ -15,7 +15,7 @@ using std::chrono::nanoseconds;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 
-void generate_random_array(float* arr, size_t size) {
+void generate_random_array(float*& array, const size_t& size) {
 	float min = 0;
 	float max = pow(10, 6);
 	float range = max - min;
@@ -23,11 +23,11 @@ void generate_random_array(float* arr, size_t size) {
 	for (size_t i = 0; i < size; ++i) {
 		srand(time(NULL));
 		float random =  ((float)rand()) / (float)RAND_MAX;
-		arr[i] = random * range + min;
+		array[i] = random * range + min;
 	}
 }
 
-double find_average_and_std_serial(float* array, size_t size) {
+double find_average_and_std_serial(float*& array, const size_t& size) {
 	auto start = high_resolution_clock::now();
 
 	// Average
@@ -74,7 +74,7 @@ double find_average_and_std_serial(float* array, size_t size) {
 	return execution_time;
 }
 
-double find_average_and_std_parallel(float* array, size_t size) {
+double find_average_and_std_parallel(float*& array, const size_t& size) {
 	auto start = high_resolution_clock::now();
 
 	// Average
