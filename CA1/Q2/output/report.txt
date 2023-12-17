@@ -13,4 +13,4 @@ Testing "print_int_vector" Function:
 	- 2 signed quad words format: [FFEEDDCCBBAA9988, 7766554433221100]
 
 Testing "print_spfp_vector" Function:
-	- Content of the 128-bit register: [7.000000, 1231231232.000000, -3.100000, -6763.399902]
+	- content of the 128-bit register: [7.000000, 1231231232.000000, -3.100000, -6763.399902]
