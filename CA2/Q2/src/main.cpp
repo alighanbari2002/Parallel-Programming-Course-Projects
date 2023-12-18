@@ -1,6 +1,8 @@
+#include <iostream>
+#include <random>
 #include <stdio.h>
 #include <stdlib.h>
-#include <float.h>
+#include <time.h>
 #include <math.h>
 #include <chrono>
 #ifdef 		_WIN32
@@ -9,25 +11,24 @@
 #include <x86intrin.h>
 #endif
 
+using std::default_random_engine; 
+using std::uniform_real_distribution;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 
-void generate_random_array(float* arr, size_t size) {
-	float min = 0;
-	float max = pow(10, 6);
-	float range = max - min;
-	
-	for (size_t i = 0; i < size; i++) {
-		srand(time(NULL));
-		float random =  ((float)rand()) / (float)RAND_MAX;
-		arr[i] = random * range + min;
-	}
+void generate_random_array(float*& array, const size_t& size) {
+    default_random_engine generator(time(NULL));
+    uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+    
+	for (size_t i = 0; i < size; ++i) {
+        array[i] = distribution(generator);
+    }
 }
 
-double find_average_and_std_serial(float* array, size_t size) {
+double find_average_and_std_serial(float*& array, const size_t& size) {
 	auto start = high_resolution_clock::now();
 
 	// Average
@@ -69,12 +70,12 @@ double find_average_and_std_serial(float* array, size_t size) {
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }
 
-double find_average_and_std_parallel(float array[], size_t size) {
+double find_average_and_std_parallel(float*& array, const size_t& size) {
 	auto start = high_resolution_clock::now();
 
 	// Average
@@ -110,7 +111,7 @@ double find_average_and_std_parallel(float array[], size_t size) {
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-    printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+    printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
     return execution_time;
 }

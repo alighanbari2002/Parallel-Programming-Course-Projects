@@ -1,8 +1,9 @@
+#include <iostream>
+#include <random>
 #include <stdio.h>
 #include <stdlib.h>
-#include <float.h>
+#include <time.h>
 #include <math.h>
-#include <chrono>
 #include <omp.h>
 #ifdef 		_WIN32
 #include <intrin.h>
@@ -10,63 +11,56 @@
 #include <x86intrin.h>
 #endif
 
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
-using std::chrono::nanoseconds;
-
 #define ARRAY_SIZE 1048576 // 2 ^ 20
-#define NUM_THREADS 8
+#define NUM_THREADS omp_get_max_threads()
 
-void generate_random_array(float* arr, size_t size) {
-	float min = 0;
-	float max = pow(10, 6);
-	float range = max - min;
-	
-	for (size_t i = 0; i < size; i++) {
-		srand(time(NULL));
-		float random =  ((float)rand()) / (float)RAND_MAX;
-		arr[i] = random * range + min;
-	}
+using std::default_random_engine; 
+using std::uniform_real_distribution;
+
+void generate_random_array(float*& array, const size_t& size) {
+    default_random_engine generator(time(NULL));
+    uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+    
+	for (size_t i = 0; i < size; ++i) {
+        array[i] = distribution(generator);
+    }
 }
 
-double find_min_serial(float* array, size_t size) {
+double find_min_serial(float*& array, const size_t& size) {
 	float min_element = array[0];
 	int min_index = 0;
 	size_t i;
 
-	auto start = high_resolution_clock::now();
+	double start = omp_get_wtime();
 
-	for (i = 0; i < size; i++) {
+	for (i = 0; i < size; ++i) {
 		if (array[i] < min_element) {
 			min_element = array[i];
 			min_index = i;
 		}
 	}
 
-	auto finish = high_resolution_clock::now();
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	double finish = omp_get_wtime();
+	double execution_time = (finish - start) * pow(10, 9);
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }
 
-double find_min_parallel(float* array, size_t size) {
-	float local_min_element, min_element = array[0];
-	int local_min_index, min_index = 0;
-	size_t i;
+double find_min_parallel(float*& array, const size_t& size) {
+	float min_element = array[0], local_min_element = array[0];
+	int min_index = 0, local_min_index = 0;
+	size_t i = 0;
 
-	auto start = high_resolution_clock::now();
+	double start = omp_get_wtime();
 
-	#pragma omp parallel num_threads(NUM_THREADS) shared(min_element, min_index) private(i, local_min_element, local_min_index)
+	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i) num_threads(NUM_THREADS)
 	{
-		local_min_element = array[0];
-    	local_min_index = 0;
-
-		#pragma omp for simd nowait
+		#pragma omp for simd aligned(array: 64) schedule(auto) nowait
 			for (i = 0; i < size; i++) {
 				if (array[i] < local_min_element) {
 					local_min_element = array[i];
@@ -82,13 +76,13 @@ double find_min_parallel(float* array, size_t size) {
 		}
 	}
 
-	auto finish = high_resolution_clock::now();
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	double finish = omp_get_wtime();
+	double execution_time = (finish - start) * pow(10, 9);
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Execution Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %.4lf\n", execution_time);
 
 	return execution_time;
 }

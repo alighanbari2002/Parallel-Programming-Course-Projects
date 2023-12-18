@@ -42,7 +42,7 @@ void print_u8(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 15; i > 0; i--) {
+	for (size_t i = 15; i > 0; --i) {
 		printf ("%X, ", tmp.m128_u8[i]);
 	}
 	printf ("%X]\n", tmp.m128_u8[0]);
@@ -52,7 +52,7 @@ void print_i8(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 15; i > 0; i--) {
+	for (size_t i = 15; i > 0; --i) {
 		printf ("%X, ", tmp.m128_i8[i]);
 	}
 	printf ("%X]\n", tmp.m128_i8[0]);
@@ -62,7 +62,7 @@ void print_u16(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 7; i > 0; i--) {
+	for (size_t i = 7; i > 0; --i) {
 		printf ("%X, ", tmp.m128_u16[i]);
 	}
 	printf ("%X]\n", tmp.m128_u16[0]);
@@ -72,7 +72,7 @@ void print_i16(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 7; i > 0; i--) {
+	for (size_t i = 7; i > 0; --i) {
 		printf ("%X, ", tmp.m128_i16[i]);
 	}
 	printf ("%X]\n", tmp.m128_i16[0]);
@@ -82,7 +82,7 @@ void print_u32(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 3; i > 0; i--) {
+	for (size_t i = 3; i > 0; --i) {
 		printf ("%X, ", tmp.m128_u32[i]);
 	}
 	printf ("%X]\n", tmp.m128_u32[0]);
@@ -92,7 +92,7 @@ void print_i32(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 3; i > 0; i--) {
+	for (size_t i = 3; i > 0; --i) {
 		printf ("%X, ", tmp.m128_i32[i]);
 	}
 	printf ("%X]\n", tmp.m128_i32[0]);
@@ -102,7 +102,7 @@ void print_u64(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 1; i > 0; i--) {
+	for (size_t i = 1; i > 0; --i) {
 		printf ("%lX, ", tmp.m128_u64[i]);
 	}
 	printf ("%lX]\n", tmp.m128_u64[0]);
@@ -112,7 +112,7 @@ void print_i64(__m128i a) {
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 1; i > 0; i--) {
+	for (size_t i = 1; i > 0; --i) {
 		printf ("%lX, ", tmp.m128_i64[i]);
 	}
 	printf ("%lX]\n", tmp.m128_i64[0]);
@@ -197,7 +197,7 @@ int main() {
 	b = _mm_load_ps(floatArray);
 
     printf("\nTesting \"print_spfp_vector\" Function:\n");
-    printf("\t- Content of the 128-bit register: ");
+    printf("\t- content of the 128-bit register: ");
 	print_spfp_vector(b);
 
     return 0;

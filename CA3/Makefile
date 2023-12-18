@@ -1,5 +1,5 @@
-CLEAR_DIR_FLAG = --no-print-directory
 SUBDIRS := $(wildcard */.)
+CLEAR_DIR_FLAG = --no-print-directory
 
 define submake
 	@counter=1;                                             \
@@ -8,17 +8,15 @@ define submake
 			printf "===========\n";                         \
 			printf "Question #$$counter\n";                 \
 			printf "===========\n";                         \
-			$(MAKE) $(1) --directory=$$d $(CLEAR_DIR_FLAG); \
-		else                                                \
-			$(MAKE) $(1) --directory=$$d;                   \
 		fi;                                                 \
+		$(MAKE) $(1) --directory=$$d;                       \
 		counter=$$((counter + 1));                          \
 	done
 endef
 #----------------------------------------------------------------
 all: ; $(call submake, $@)
 
-run:    ; $(call submake, $@)
+run:    ; $(call submake, $@ $(CLEAR_DIR_FLAG))
 run-Q1: ; @$(MAKE) run --directory="Q1/" $(CLEAR_DIR_FLAG)
 run-Q2: ; @$(MAKE) run --directory="Q2/" $(CLEAR_DIR_FLAG)
 run-Q3: ; @$(MAKE) run --directory="Q3/" $(CLEAR_DIR_FLAG)

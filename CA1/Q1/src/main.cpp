@@ -61,7 +61,7 @@ unsigned int genuine_intel(void) {
             (vendor_ID[2] == 'letn'));
 }
 
-unsigned int is_HWMT_Supported(void);unsigned int is_HWMT_Supported(void) {
+unsigned int is_HWMT_supported(void) {
     unsigned int reg_edx = 0;
     if((cpuid_supported() >= 1) && genuine_intel()) {
         __asm__ volatile(
@@ -76,7 +76,7 @@ unsigned int is_HWMT_Supported(void);unsigned int is_HWMT_Supported(void) {
 
 unsigned int get_max_num_cores_per_package(void) {
     unsigned int ncore_determin;
-    if(!is_HWMT_Supported()) {
+    if(!is_HWMT_supported()) {
         return 1;
     }
     __asm__ volatile(
@@ -92,7 +92,7 @@ unsigned int get_max_num_cores_per_package(void) {
 
 unsigned int get_max_numLP_per_package(void) {
     unsigned int reg_ebx = 0;
-    if(!is_HWMT_Supported()) {
+    if(!is_HWMT_supported()) {
         return 0;
     }
     __asm__ volatile(
@@ -122,7 +122,6 @@ unsigned find_mask_width(unsigned int count_item) {
         "=r" (mask_width) :
         "r" (mask_width), "r" (cnt)
     );
-    
     return mask_width;
 
     // other implementation
@@ -188,7 +187,6 @@ int get_num_active_cores() {
 	// - Behrad Elmi & Ali Ghanbari
 
     cpu_set_t cset;
-    int j, numLP_enabled = 0;
     unsigned int maxLP_per_core = 0;
     unsigned char apic_ID;
     unsigned char packageID_mask;
@@ -205,7 +203,7 @@ int get_num_active_cores() {
     unsigned int mask_width_mlppc = find_mask_width(maxLP_per_core);
     unsigned int mask_width_mnlp = find_mask_width(mnlp);
     sched_getaffinity(getpid(), sizeof(cset), &cset);
-    j = 0;
+    int j = 0, numLP_enabled = 0;
 
     while(j < sysconf(_SC_NPROCESSORS_CONF)) {
         CPU_ZERO(&cset);
@@ -242,9 +240,9 @@ int get_num_active_cores() {
     coreID_bucket[0] = tbl_packageID[0] | tbl_coreID[0];
     processor_mask = 1;
     pCore_processor_mask[0] = processor_mask;
-    for(processor_num = 1; processor_num < numLP_enabled; processor_num++) {
+    for(processor_num = 1; processor_num < numLP_enabled; ++processor_num) {
         processor_mask <<= 1;
-        for(i = 0; i < core_num; i++) {
+        for(i = 0; i < core_num; ++i) {
             //
             // we may be comparing bit-fields of logical processors
             // residing in different packages, the code below assumes
