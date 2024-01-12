@@ -24,7 +24,7 @@ typedef struct {
 } ThreadData;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
-#define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) / 4)
+#define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) - 1)
 #define CHUNK_SIZE (ARRAY_SIZE / NUM_THREADS)
 
 void generate_random_array(std::vector<double>& array, const size_t& size)
