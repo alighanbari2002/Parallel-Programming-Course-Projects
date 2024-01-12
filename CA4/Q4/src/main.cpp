@@ -78,7 +78,15 @@ void* process_image(void* arg)
 {
     ThreadData* data = (ThreadData*)arg;
     size_t start_row = data->row * (FRONT_ROW / NUM_THREADS);
-    size_t end_row = (data->row + 1) * (FRONT_ROW / NUM_THREADS);
+    size_t end_row;
+    if (data->row == NUM_THREADS - 1) // last thread
+    {
+        end_row = FRONT_ROW;
+    }
+    else
+    {
+        end_row = (data->row + 1) * (FRONT_ROW / NUM_THREADS);
+    }
 
     for (size_t row = start_row; row < end_row; ++row)
     {
