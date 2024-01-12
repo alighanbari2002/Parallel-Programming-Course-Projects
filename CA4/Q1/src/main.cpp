@@ -14,9 +14,9 @@ using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
 typedef struct {
-    float* arr;
+    double* arr;
     int start, end;
-    float min_element;
+    double min_element;
     int min_index;
 } ThreadData;
 
@@ -24,10 +24,10 @@ typedef struct {
 #define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) - 1)
 #define CHUNK_SIZE (ARRAY_SIZE / NUM_THREADS)
 
-void generate_random_array(float*& array, const size_t& size)
+void generate_random_array(double*& array, const size_t& size)
 {
     default_random_engine generator(time(NULL));
-    uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+    uniform_real_distribution<double> distribution(0.0, pow(10, 6));
 
 	for (size_t i = 0; i < size; ++i)
     {
@@ -35,9 +35,9 @@ void generate_random_array(float*& array, const size_t& size)
     }
 }
 
-double find_min_serial(float*& array, const size_t& size)
+double find_min_serial(double*& array, const size_t& size)
 {
-	float min_element = array[0];
+	double min_element = array[0];
 	int min_index = 0;
 	size_t i;
 
@@ -81,9 +81,9 @@ void* find_min_thread(void* arg)
     pthread_exit(NULL);
 }
 
-double find_min_parallel(float*& array, const size_t& size)
+double find_min_parallel(double*& array, const size_t& size)
 {
-    float min_element = array[0];
+    double min_element = array[0];
 	int min_index = 0;
 	size_t i;
  
@@ -147,7 +147,7 @@ int main()
 {
     print_group_info();
 
-	float *array = new float [ARRAY_SIZE];
+	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
 	double serial_time   = find_min_serial(array, ARRAY_SIZE);
