@@ -15,7 +15,7 @@ using std::chrono::nanoseconds;
 
 typedef struct {
     double* arr;
-    int start, end;
+    size_t start, end;
     double min_element;
     int min_index;
 } ThreadData;
@@ -69,7 +69,7 @@ void* find_min_thread(void* arg)
     data->min_index = data->start;
     data->min_element = data->arr[data->start];
 
-    for(int i = data->start + 1; i < data->end; ++i)
+    for(size_t i = data->start + 1; i < data->end; ++i)
     {
         if(data->arr[i] < data->min_element)
         {
