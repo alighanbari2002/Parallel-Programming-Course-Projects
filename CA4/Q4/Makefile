@@ -1,7 +1,7 @@
 PATH_SRC    := src
 PATH_BIN    := bin
 PATH_OUTPUT := output
-PATH_LIB    := lib
+PATH_LIB    := # lib
 
 include common_vars.mk
 

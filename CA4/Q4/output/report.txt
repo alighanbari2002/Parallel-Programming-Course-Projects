@@ -1,0 +1,9 @@
+Group Members:
+	- Ali Ghanbari [810199473]
+	- Behrad Elmi  [810199557]
+
+Run Time (ns):
+	- Serial Method: 2075429.0000
+	- Parallel Method: 968449.0000
+
+Speedup: 2.1430
