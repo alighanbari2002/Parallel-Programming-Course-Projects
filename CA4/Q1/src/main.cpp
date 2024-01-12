@@ -6,6 +6,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <chrono>
+#include <pthread.h>
 
 using std::default_random_engine; 
 using std::uniform_real_distribution;
