@@ -1,61 +1,66 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <omp.h>
 #include <math.h>
 #include <time.h>
-#include <omp.h>
 
-#define N  15
+#define N 15
+#define NUM_THREADS omp_get_max_threads() - 1
 
-int solutions;
+int solutions_count;
 
-int put(int Queens[], int row, int column)
+int put(int* queens, int row, int column)
 {
 	int i;
-	for (i = 0; i < row; i++) {
-		if (Queens[i] == column || abs(Queens[i] - column) == (row - i))
-			return -1;
-	}
-	Queens[row] = column;
-	if (row == N - 1) {
-	#pragma omp atomic
-		solutions++;
-	}
-	else {
-#pragma omp parallel schedule(dynamic) num_threads(3)
-	{
-		#pragma omp for
-		for (i = 0; i < N; i++) { // increment row
-			put(Queens, row + 1, i);
+
+    for(i = 0; i < row; ++i)
+    {
+        if (queens[i] == column || abs(queens[i] - column) == (row - i))
+        {
+            return -1;
+        }
+    }
+
+    queens[row] = column; 
+    
+    if(row == N - 1)
+    {
+		#pragma omp atomic write
+        	solutions_count++;
+    }
+    else
+    {
+		for(i = 0; i < N; ++i) // increment row
+		{
+			put(queens, row + 1, i);
 		}
-	}
-	}
-	return 0;
+    }
+
+    return 0;
 }
 
-
-void solve(int Queens[]) {
+void solve(int* queens)
+{
 	int i;
-	for (i = 0; i < N; i++) {
-		put(Queens, 0, i);
-	}
+	
+	#pragma omp parallel for default(shared) private(i) schedule(auto) num_threads(NUM_THREADS)
+		for(i = 0; i < N; ++i)
+		{
+			put(queens, 0, i);
+		}
 }
-
-
 
 int main()
 {
-	int Queens[N];
-	time_t t0 = 0, tf = 0, t0s = 0, tfs = 0;
+    int queens[N];
+    time_t start = 0, finish = 0;    
 
-	t0 = time(NULL);
-	solve(Queens);
-	tf = time(NULL);
+    start = time(NULL);
+    solve(queens);
+    finish = time(NULL);
 
-	printf("# solutions %d time: %f \n", solutions, difftime(tf, t0));
+    printf("Number of solutions: %d", solutions_count);
+    printf("Time taken: %d", difftime(finish, start));
 
-	return 0;
-
+    return 0;
 }
