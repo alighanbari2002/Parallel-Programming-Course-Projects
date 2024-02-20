@@ -2,14 +2,18 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <math.h>
-#include <time.h>
+#include <chrono>
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::nanoseconds;
 
 #define N 15
 #define NUM_THREADS omp_get_max_threads() - 1
 
 int solutions_count;
 
-int put(int* queens, int row, int column)
+int put(int*& queens, int row, int column)
 {
 	int i;
 
@@ -21,11 +25,12 @@ int put(int* queens, int row, int column)
         }
     }
 
-    queens[row] = column; 
+    #pragma omp critical
+        queens[row] = column;
     
     if(row == N - 1)
     {
-		#pragma omp atomic write
+		#pragma omp critical
         	solutions_count++;
     }
     else
@@ -39,10 +44,10 @@ int put(int* queens, int row, int column)
     return 0;
 }
 
-void solve(int* queens)
+void solve(int*& queens)
 {
 	int i;
-	
+
 	#pragma omp parallel for default(shared) private(i) schedule(auto) num_threads(NUM_THREADS)
 		for(i = 0; i < N; ++i)
 		{
@@ -52,15 +57,17 @@ void solve(int* queens)
 
 int main()
 {
-    int queens[N];
-    time_t start = 0, finish = 0;    
+    int* queens = new int[N];
 
-    start = time(NULL);
+    auto start = high_resolution_clock::now();
+
     solve(queens);
-    finish = time(NULL);
 
-    printf("Number of solutions: %d", solutions_count);
-    printf("Time taken: %d", difftime(finish, start));
+    auto finish = high_resolution_clock::now();
+	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+    printf("Number of solutions: %d\n", solutions_count);
+    printf("Time taken: %lf (ns)\n", execution_time);
 
     return 0;
 }
