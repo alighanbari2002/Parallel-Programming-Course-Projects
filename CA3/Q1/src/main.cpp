@@ -7,7 +7,7 @@
 #include <omp.h>
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
-#define NUM_THREADS omp_get_max_threads()
+#define NUM_THREADS omp_get_max_threads() - 1
 
 using std::default_random_engine; 
 using std::uniform_real_distribution;
