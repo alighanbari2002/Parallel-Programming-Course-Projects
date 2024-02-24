@@ -5,11 +5,6 @@
 #include <time.h>
 #include <math.h>
 #include <omp.h>
-#ifdef 		_WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 #define NUM_THREADS omp_get_max_threads()
@@ -79,7 +74,7 @@ double find_min_parallel(float*& array, const size_t& size) {
 	double finish = omp_get_wtime();
 	double execution_time = (finish - start) * pow(10, 9);
 
-	printf("\nSerial Method:\n");
+	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
 	printf("\t- Run Time (ns): %.4lf\n", execution_time);

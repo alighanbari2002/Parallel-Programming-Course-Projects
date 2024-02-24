@@ -3,11 +3,6 @@
 #include <omp.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#ifdef 		_WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
 
 using cv::Mat;
 using cv::imwrite;

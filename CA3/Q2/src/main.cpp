@@ -5,11 +5,6 @@
 #include <time.h>
 #include <math.h>
 #include <omp.h>
-#ifdef 		_WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 #define NUM_THREADS omp_get_max_threads()
