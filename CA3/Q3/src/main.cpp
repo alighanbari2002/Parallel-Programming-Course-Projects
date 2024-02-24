@@ -21,14 +21,17 @@ Mat img2;
 unsigned int NROWS;
 unsigned int NCOLS;
 
-double serial_implementation() {
+double serial_implementation()
+{
     Mat out_img_serial(NROWS, NCOLS, CV_8U);
     size_t row, col;
 
 	double start = omp_get_wtime();
 
-    for(row = 0; row < NROWS; ++row) {
-        for(col = 0; col < NCOLS; ++col) {
+    for(row = 0; row < NROWS; ++row)
+    {
+        for(col = 0; col < NCOLS; ++col)
+        {
             out_img_serial.at<uchar> (row, col) = abs(
                 img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
                 );
@@ -46,15 +49,18 @@ double serial_implementation() {
     return execution_time;
 }
 
-double parallel_implementation() {
+double parallel_implementation()
+{
     Mat out_img_parallel(NROWS, NCOLS, CV_8U);
     size_t row, col;
 
 	double start = omp_get_wtime();
 
     #pragma omp parallel for simd default(shared) private(row, col) schedule(auto) num_threads(NUM_THREADS)
-        for(row = 0; row < NROWS; ++row) {
-            for(col = 0; col < NCOLS; ++col) {
+        for(row = 0; row < NROWS; ++row)
+        {
+            for(col = 0; col < NCOLS; ++col)
+            {
                 out_img_parallel.at<uchar> (row, col) = abs(
                     img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
                     );
@@ -72,19 +78,22 @@ double parallel_implementation() {
     return execution_time;
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     // Load frames
     img1 = imread(IMAGE_01, IMREAD_GRAYSCALE);
     img2 = imread(IMAGE_02, IMREAD_GRAYSCALE);
-    if (img1.size() != img2.size()) {
+    if (img1.size() != img2.size())
+    {
         printf("Illegal frames!\n");
         exit(EXIT_FAILURE);
     }

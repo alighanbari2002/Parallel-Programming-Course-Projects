@@ -12,24 +12,29 @@
 using std::default_random_engine; 
 using std::uniform_real_distribution;
 
-void generate_random_array(float*& array, const size_t& size) {
+void generate_random_array(float*& array, const size_t& size)
+{
     default_random_engine generator(time(NULL));
     uniform_real_distribution<float> distribution(0.0, pow(10, 6));
     
-	for (size_t i = 0; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i)
+	{
         array[i] = distribution(generator);
     }
 }
 
-double find_min_serial(float*& array, const size_t& size) {
+double find_min_serial(float*& array, const size_t& size)
+{
 	float min_element = array[0];
 	int min_index = 0;
 	size_t i;
 
 	double start = omp_get_wtime();
 
-	for (i = 0; i < size; ++i) {
-		if (array[i] < min_element) {
+	for (i = 0; i < size; ++i)
+	{
+		if (array[i] < min_element)
+		{
 			min_element = array[i];
 			min_index = i;
 		}
@@ -46,7 +51,8 @@ double find_min_serial(float*& array, const size_t& size) {
 	return execution_time;
 }
 
-double find_min_parallel(float*& array, const size_t& size) {
+double find_min_parallel(float*& array, const size_t& size)
+{
 	float min_element = array[0], local_min_element = array[0];
 	int min_index = 0, local_min_index = 0;
 	size_t i = 0;
@@ -56,14 +62,17 @@ double find_min_parallel(float*& array, const size_t& size) {
 	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i) num_threads(NUM_THREADS)
 	{
 		#pragma omp for simd aligned(array: 64) schedule(auto) nowait
-			for (i = 0; i < size; i++) {
-				if (array[i] < local_min_element) {
+			for (i = 0; i < size; i++)
+			{
+				if (array[i] < local_min_element)
+				{
 					local_min_element = array[i];
 					local_min_index = i;
 				}
 			}
 
-		if (local_min_element < min_element) {
+		if (local_min_element < min_element)
+		{
 			#pragma omp atomic write
 				min_element = local_min_element;
 			#pragma omp atomic write
@@ -82,13 +91,15 @@ double find_min_parallel(float*& array, const size_t& size) {
 	return execution_time;
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
     print_group_info();
 
 	float *array = new float [ARRAY_SIZE];

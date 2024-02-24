@@ -31,21 +31,31 @@ unsigned int LOGO_COL;
 unsigned int FRONT_ROW;
 unsigned int FRONT_COL;
 
-double serial_implementation() {
+double serial_implementation()
+{
     Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; ++row) {
-        for(size_t col = 0; col < FRONT_COL; ++col) {
-            if(row <= LOGO_ROW && col <= LOGO_COL) {
+    for(size_t row = 0; row < FRONT_ROW; ++row)
+    {
+        for(size_t col = 0; col < FRONT_COL; ++col)
+        {
+            if(row <= LOGO_ROW && col <= LOGO_COL)
+            {
                 if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                {
                     out_img_serial.at<uchar> (row, col) = 255;
+                }
                 else
+                {
                     out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                }
             }
             else
+            {
                 out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col);
+            }
         }
     }
 
@@ -60,7 +70,8 @@ double serial_implementation() {
     return execution_time;
 }
 
-double parallel_implementation() {
+double parallel_implementation()
+{
     Mat out_img_parallel(FRONT_ROW, FRONT_COL, CV_8U);
 
     __m128i_u logo_part, front_part;
@@ -68,14 +79,16 @@ double parallel_implementation() {
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; ++row) {
-        for(size_t col = 0; col < FRONT_COL; col += M128_GRAY_INTERVAL) {
-            
+    for(size_t row = 0; row < FRONT_ROW; ++row)
+    {
+        for(size_t col = 0; col < FRONT_COL; col += M128_GRAY_INTERVAL)
+        {
             logo_part  = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(&logo.at<uchar> (row, col)));
             front_part = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(&front.at<uchar> (row, col)));
             output_part   = reinterpret_cast<__m128i_u*>(&out_img_parallel.at<uchar> (row, col));
                 
-            if(row <= LOGO_ROW && col <= LOGO_COL - M128_GRAY_INTERVAL) {
+            if(row <= LOGO_ROW && col <= LOGO_COL - M128_GRAY_INTERVAL)
+            {
                 // Divide by 4 
                 // 00 --> xxxx xxxx xxxx xx --> xx
                 // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
@@ -93,7 +106,9 @@ double parallel_implementation() {
                 _mm_storeu_si128(output_part, _mm_adds_epu8(logo_part, front_part));
             }
             else
+            {
                 _mm_storeu_si128(output_part, front_part);
+            }
         }
     }
 
@@ -108,20 +123,23 @@ double parallel_implementation() {
     return execution_time;
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     // Load frames
     logo  = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
     front = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
     if (logo.size().width > front.size().width ||
-        logo.size().height > front.size().height) {
+        logo.size().height > front.size().height)
+    {
         printf("Illegal frames!\n");
         exit(EXIT_FAILURE);
     }

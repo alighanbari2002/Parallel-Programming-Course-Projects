@@ -25,22 +25,32 @@ unsigned int LOGO_COL;
 unsigned int FRONT_ROW;
 unsigned int FRONT_COL;
 
-double serial_implementation() {
+double serial_implementation()
+{
     Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
     size_t row, col;
 
 	double start = omp_get_wtime();
 
-    for(row = 0; row < FRONT_ROW; ++row) {
-        for(col = 0; col < FRONT_COL; ++col) {
-            if(row <= LOGO_ROW && col <= LOGO_COL) {
+    for(row = 0; row < FRONT_ROW; ++row)
+    {
+        for(col = 0; col < FRONT_COL; ++col)
+        {
+            if(row <= LOGO_ROW && col <= LOGO_COL)
+            {
                 if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                {
                     out_img_serial.at<uchar> (row, col) = 255;
+                }
                 else
+                {
                     out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                }
             }
             else
+            {
                 out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col);
+            }
         }
     }
 
@@ -55,23 +65,33 @@ double serial_implementation() {
     return execution_time;
 }
 
-double parallel_implementation() {
+double parallel_implementation()
+{
     Mat out_img_parallel(FRONT_ROW, FRONT_COL, CV_8U);
     size_t row, col;
 
 	double start = omp_get_wtime();
 
     #pragma omp parallel for simd default(shared) private(row, col) schedule(guided, 16) num_threads(NUM_THREADS) simdlen(16)
-        for(row = 0; row < FRONT_ROW; ++row) {
-            for(col = 0; col < FRONT_COL; ++col) {
-                if(row <= LOGO_ROW && col <= LOGO_COL) {
+        for(row = 0; row < FRONT_ROW; ++row)
+        {
+            for(col = 0; col < FRONT_COL; ++col)
+            {
+                if(row <= LOGO_ROW && col <= LOGO_COL)
+                {
                     if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                    {
                         out_img_parallel.at<uchar> (row, col) = 255;
+                    }
                     else
+                    {
                         out_img_parallel.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                    }
                 }
                 else
+                {
                     out_img_parallel.at<uchar> (row, col) = front.at<uchar> (row, col);
+                }
             }
         }
 
@@ -86,20 +106,23 @@ double parallel_implementation() {
     return execution_time;
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     // Load frames
     logo  = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
     front = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
     if (logo.size().width > front.size().width ||
-        logo.size().height > front.size().height) {
+        logo.size().height > front.size().height)
+    {
         printf("Illegal frames!\n");
         exit(EXIT_FAILURE);
     }

@@ -15,7 +15,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct {
+typedef struct
+{
     size_t row;
     Mat out_img;
 } ThreadData;
@@ -160,7 +161,7 @@ double parallel_implementation()
     out_img_parallel.release();
 
     printf("\t- Parallel Method: %.4lf\n", execution_time);
-    
+
     return execution_time;
 }
 

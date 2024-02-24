@@ -14,7 +14,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct {
+typedef struct
+{
     size_t row;
     Mat img1, img2;
     Mat out_img;
@@ -31,7 +32,8 @@ Mat img2;
 unsigned int NROWS;
 unsigned int NCOLS;
 
-double serial_implementation() {
+double serial_implementation()
+{
     Mat out_img_serial(NROWS, NCOLS, CV_8U);
     size_t row, col;
 
@@ -136,7 +138,8 @@ void print_group_info()
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     // Load frames

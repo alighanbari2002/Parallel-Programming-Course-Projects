@@ -5,7 +5,8 @@
 #include <x86intrin.h>
 #endif
 
-typedef union {
+typedef union
+{
 	__m128i 			int128;
 	
 	unsigned char		m128_u8[16];
@@ -21,13 +22,15 @@ typedef union {
 	int64_t				m128_i64[4];
 } intVec;
 
-typedef union {
+typedef union
+{
 	__m128 				f128;
 
 	float				f32[4];
 } floatVec;
 
-typedef enum {
+typedef enum
+{
     u8,
     i8,
     u16,
@@ -38,88 +41,106 @@ typedef enum {
     i64
 } DataType;
 
-void print_u8(__m128i a) {
+void print_u8(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 15; i > 0; --i) {
+	for (size_t i = 15; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_u8[i]);
 	}
 	printf ("%X]\n", tmp.m128_u8[0]);
 }
 
-void print_i8(__m128i a) {
+void print_i8(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 15; i > 0; --i) {
+	for (size_t i = 15; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_i8[i]);
 	}
 	printf ("%X]\n", tmp.m128_i8[0]);
 }
 
-void print_u16(__m128i a) {
+void print_u16(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 7; i > 0; --i) {
+	for (size_t i = 7; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_u16[i]);
 	}
 	printf ("%X]\n", tmp.m128_u16[0]);
 }
 
-void print_i16(__m128i a) {
+void print_i16(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 7; i > 0; --i) {
+	for (size_t i = 7; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_i16[i]);
 	}
 	printf ("%X]\n", tmp.m128_i16[0]);
 }
 
-void print_u32(__m128i a) {
+void print_u32(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 3; i > 0; --i) {
+	for (size_t i = 3; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_u32[i]);
 	}
 	printf ("%X]\n", tmp.m128_u32[0]);
 }
 
-void print_i32(__m128i a) {
+void print_i32(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 3; i > 0; --i) {
+	for (size_t i = 3; i > 0; --i)
+	{
 		printf ("%X, ", tmp.m128_i32[i]);
 	}
 	printf ("%X]\n", tmp.m128_i32[0]);
 }
 
-void print_u64(__m128i a) {
+void print_u64(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 1; i > 0; --i) {
+	for (size_t i = 1; i > 0; --i)
+	{
 		printf ("%lX, ", tmp.m128_u64[i]);
 	}
 	printf ("%lX]\n", tmp.m128_u64[0]);
 }
 
-void print_i64(__m128i a) {
+void print_i64(__m128i a)
+{
 	intVec tmp;
 	tmp.int128 = a;
 	printf ("[");
-	for (size_t i = 1; i > 0; --i) {
+	for (size_t i = 1; i > 0; --i)
+	{
 		printf ("%lX, ", tmp.m128_i64[i]);
 	}
 	printf ("%lX]\n", tmp.m128_i64[0]);
 }
 
-void print_int_vector(__m128i a, DataType type) {
-    switch (type) {
+void print_int_vector(__m128i a, DataType type)
+{
+    switch (type)
+	{
         case u8:
     		printf("\t- 16 unsigned bytes format: ");
             print_u8(a);
@@ -158,23 +179,27 @@ void print_int_vector(__m128i a, DataType type) {
     }
 }
 
-void print_spfp_vector(__m128 a) {
+void print_spfp_vector(__m128 a)
+{
 	floatVec tmp;
 	tmp.f128 = a;
 	printf ("[");
-	for (size_t i = 3; i > 0; i--) {
+	for (size_t i = 3; i > 0; i--)
+	{
 		printf ("%f, ", tmp.f32[i]);
 	}
 	printf ("%f]\n", tmp.f32[0]);
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     __m128i a;

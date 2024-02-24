@@ -28,13 +28,16 @@ Mat img2;
 unsigned int NROWS;
 unsigned int NCOLS;
 
-double serial_implementation() {
+double serial_implementation()
+{
     Mat out_img_serial(NROWS, NCOLS, CV_8U);
 
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < NROWS; ++row) {
-        for(size_t col = 0; col < NCOLS; ++col) {
+    for(size_t row = 0; row < NROWS; ++row)
+    {
+        for(size_t col = 0; col < NCOLS; ++col)
+        {
             out_img_serial.at<uchar> (row, col) = abs(
                 img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
                 );
@@ -52,15 +55,18 @@ double serial_implementation() {
     return execution_time;
 }
 
-double parallel_implementation() {
+double parallel_implementation()
+{
     Mat out_img_parallel(NROWS, NCOLS, CV_8U);
 
     __m128i img1_part, img2_part, diff_img12, diff_img21, diff;
 
 	auto start = high_resolution_clock::now();
     
-    for (size_t row = 0; row < NROWS; ++row) {
-        for (size_t col = 0; col < NCOLS; col += M128_GRAY_INTERVAL) {
+    for (size_t row = 0; row < NROWS; ++row)
+    {
+        for (size_t col = 0; col < NCOLS; col += M128_GRAY_INTERVAL)
+        {
             img1_part = _mm_loadu_si128(reinterpret_cast<__m128i*>(&img1.at<uchar> (row, col)));
             img2_part = _mm_loadu_si128(reinterpret_cast<__m128i*>(&img2.at<uchar> (row, col)));
             diff_img12 = _mm_subs_epu8(img1_part, img2_part);
@@ -81,19 +87,22 @@ double parallel_implementation() {
     return execution_time;
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
 	print_group_info();
 
     // Load frames
     img1 = imread(IMAGE_01, IMREAD_GRAYSCALE);
     img2 = imread(IMAGE_02, IMREAD_GRAYSCALE);
-    if (img1.size() != img2.size()) {
+    if (img1.size() != img2.size())
+    {
         printf("Illegal frames!\n");
         exit(EXIT_FAILURE);
     }

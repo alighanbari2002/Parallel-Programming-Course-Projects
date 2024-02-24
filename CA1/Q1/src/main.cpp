@@ -11,7 +11,8 @@
 #ifdef 		_WIN32					//  Windows
 #define 	cpuid    __cpuid
 #else								//  Linux
-void cpuid(int cpu_info[4], int info_type) {
+void cpuid(int cpu_info[4], int info_type)
+{
 	__asm__ __volatile__(
 		"cpuid":
 		"=a" (cpu_info[0]),
@@ -30,40 +31,51 @@ void cpuid(int cpu_info[4], int info_type) {
 
 typedef unsigned long int DWORD;
 
-unsigned int cpuid_supported(void) {
+unsigned int cpuid_supported(void)
+{
     unsigned int max_input_value = 0;
+
     __asm__ volatile(
         "xor %%eax, %%eax;"
         "cpuid;"
         "mov %%eax, %0;" :
         "=r" (max_input_value));
+
     return max_input_value;
 }
 
-unsigned int genuine_intel(void) {
+unsigned int genuine_intel(void)
+{
     unsigned int vendor_ID[3] = {0, 0, 0};
+
     __asm__ volatile(
         "xor %%eax, %%eax;"
         "cpuid;"
         "mov %%ebx, %0;" :
         "=r" (vendor_ID[0])
     );
+
     __asm__ volatile(
         "mov %%edx, %0;" :
         "=r" (vendor_ID[1])
     );
+
     __asm__ volatile(
         "mov %%ecx, %0;" :
         "=r" (vendor_ID[2])
     );
+
     return ((vendor_ID[0] == 'uneG') &&
             (vendor_ID[1] == 'Ieni') &&
             (vendor_ID[2] == 'letn'));
 }
 
-unsigned int is_HWMT_supported(void) {
+unsigned int is_HWMT_supported(void)
+{
     unsigned int reg_edx = 0;
-    if((cpuid_supported() >= 1) && genuine_intel()) {
+
+    if((cpuid_supported() >= 1) && genuine_intel())
+    {
         __asm__ volatile(
             "mov $1, %%eax;"
             "cpuid;"
@@ -71,14 +83,19 @@ unsigned int is_HWMT_supported(void) {
             "=r" (reg_edx)
         );
     }
+
     return (reg_edx & HWD_MT_BIT);
 }
 
-unsigned int get_max_num_cores_per_package(void) {
+unsigned int get_max_num_cores_per_package(void)
+{
     unsigned int ncore_determin;
-    if(!is_HWMT_supported()) {
+
+    if(!is_HWMT_supported())
+    {
         return 1;
     }
+
     __asm__ volatile(
         "mov $4, %%eax;"
         "xor %%ecx, %%ecx;"
@@ -86,28 +103,36 @@ unsigned int get_max_num_cores_per_package(void) {
         "mov %%eax, %0;" :
         "=r" (ncore_determin)
     );
+
     return (unsigned int)(
         (ncore_determin & NUM_CORE_BITS) >> 26) + 1; 
 }
 
-unsigned int get_max_numLP_per_package(void) {
+unsigned int get_max_numLP_per_package(void)
+{
     unsigned int reg_ebx = 0;
-    if(!is_HWMT_supported()) {
+
+    if(!is_HWMT_supported())
+    {
         return 0;
     }
+
     __asm__ volatile(
         "mov $1, %%eax;"
         "cpuid;"
         "mov %%ebx, %0" :
         "=r" (reg_ebx)
     );
+
     return (unsigned int)(
         (reg_ebx & NUM_LOGICAL_BITS) >> 16
     );
 }
 
-unsigned find_mask_width(unsigned int count_item) {
+unsigned find_mask_width(unsigned int count_item)
+{
     unsigned int mask_width = 0, cnt = count_item;
+
     __asm__ volatile(
         "mov %1, %%eax\n\t"
         "mov $0, %%ecx\n\t"
@@ -122,6 +147,7 @@ unsigned find_mask_width(unsigned int count_item) {
         "=r" (mask_width) :
         "r" (mask_width), "r" (cnt)
     );
+
     return mask_width;
 
     // other implementation
@@ -156,20 +182,24 @@ unsigned find_mask_width(unsigned int count_item) {
     // );
 }
 
-unsigned char get_initial_apic_ID(void) {
+unsigned char get_initial_apic_ID(void)
+{
     unsigned int reg_ebx = 0;
+
     __asm__ volatile(
         "mov $1, %%eax;"
         "cpuid;"
         "mov %%ebx, %0;" : 
         "=r" (reg_ebx)
     );
+
     return (unsigned char)(
         (reg_ebx & INITIAL_APIC_ID_BITS) >> 24
     );
 }
 
-unsigned char get_nzb_subID(unsigned char fullID, unsigned char max_subID_value, unsigned char shift_count) {
+unsigned char get_nzb_subID(unsigned char fullID, unsigned char max_subID_value, unsigned char shift_count)
+{
     unsigned int mask_width;
     unsigned char subID, mask_bits;
     mask_width = find_mask_width((unsigned int)(max_subID_value));
@@ -179,9 +209,9 @@ unsigned char get_nzb_subID(unsigned char fullID, unsigned char max_subID_value,
     return subID;
 }
 
-int get_num_active_cores() {
-    // implementation of this function
-    // was inspired by these references:
+int get_num_active_cores()
+{
+    // implementation of this function was inspired by these references:
     // https://www.prowaretech.com/archive/CPU_ID/Detecting_Multi-Core_Processors.htm
     // http://software.intel.com/en-us/articles/detecting-multi-core-processor-topology-in-an-ia-32-platform
 	// - Behrad Elmi & Ali Ghanbari
@@ -205,10 +235,12 @@ int get_num_active_cores() {
     sched_getaffinity(getpid(), sizeof(cset), &cset);
     int j = 0, numLP_enabled = 0;
 
-    while(j < sysconf(_SC_NPROCESSORS_CONF)) {
+    while(j < sysconf(_SC_NPROCESSORS_CONF))
+    {
         CPU_ZERO(&cset);
         CPU_SET(j, &cset);
-        if(sched_setaffinity(getpid(), sizeof(cset), &cset) != -1) {
+        if(sched_setaffinity(getpid(), sizeof(cset), &cset) != -1)
+        {
             usleep(0); // Ensure this thread is on the affinitized CPU
             apic_ID = get_initial_apic_ID();
             // 
@@ -222,8 +254,7 @@ int get_num_active_cores() {
                                         ncpp,
                                         mask_width_mlppc);
             packageID_mask =
-                    ((unsigned char) (0xff <<
-                    mask_width_mnlp));
+                    ((unsigned char) (0xff << mask_width_mnlp));
             tbl_packageID[j] = apic_ID & packageID_mask;
             numLP_enabled++;
         }
@@ -240,21 +271,25 @@ int get_num_active_cores() {
     coreID_bucket[0] = tbl_packageID[0] | tbl_coreID[0];
     processor_mask = 1;
     pCore_processor_mask[0] = processor_mask;
-    for(processor_num = 1; processor_num < numLP_enabled; ++processor_num) {
+    for(processor_num = 1; processor_num < numLP_enabled; ++processor_num)
+    {
         processor_mask <<= 1;
-        for(i = 0; i < core_num; ++i) {
+        for(i = 0; i < core_num; ++i)
+        {
             //
             // we may be comparing bit-fields of logical processors
             // residing in different packages, the code below assumes
             // that the bit-masks are the same on all processors in
             // the system
             //
-            if((tbl_packageID[processor_num] | tbl_coreID[processor_num]) == coreID_bucket[i]) {
+            if((tbl_packageID[processor_num] | tbl_coreID[processor_num]) == coreID_bucket[i])
+            {
                 pCore_processor_mask[i] |= processor_mask;
                 break;
             }
         }
-        if(i == core_num) {
+        if(i == core_num)
+        {
             //
             // Did not match any bucket, start new bucket
             //
@@ -267,13 +302,15 @@ int get_num_active_cores() {
 	return core_num;	
 }
 
-void print_group_info() {
+void print_group_info()
+{
     printf("Group Members:\n");
 	printf("\t- Ali Ghanbari [810199473]\n");
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
-int main() {
+int main()
+{
     print_group_info();
     
 	printf("\nProcessor Info:\n");
@@ -300,9 +337,12 @@ int main() {
     // Check if hyperthreading is supported
 	cpuid(info, 0x1);
     int isHyperthreadingSupported = (info[2] >> 28) & 0x1;
-    if (isHyperthreadingSupported) {
+    if (isHyperthreadingSupported)
+    {
         printf("\t- Hyperthreading is supported.\n");
-    } else {
+    }
+    else
+    {
         printf("\t- Hyperthreading is not supported.\n");
     }
 
@@ -341,7 +381,8 @@ int main() {
 	SSE42 = (info[2] & ((int)1 << 20)) != 0;
 	AVX   = (info[2] & ((int)1 << 28)) != 0;
 	cpuid(info, 0x80000000);
-	if (info[0] >= 0x00000007){
+	if (info[0] >= 0x00000007)
+    {
 		cpuid(info, 0x00000007);
 		AVX2   = (info[1] & ((int)1 <<  5)) != 0;
 		SHA    = (info[1] & ((int)1 << 29)) != 0;
@@ -357,6 +398,6 @@ int main() {
 	printf("\t- %s\n", SHA   ? "SHA   is supported." : "SHA   is not supported.");
 	printf("\t- %s\n", AVX   ? "AVX   is supported." : "AVX   is not supported.");
 	printf("\t- %s\n", AVX2  ? "AVX2  is supported." : "AVX2  is not supported.");
-    
+
     return 0;
 }

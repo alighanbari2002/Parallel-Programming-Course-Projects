@@ -16,7 +16,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct {
+typedef struct
+{
     std::vector<double>::iterator start, end;
     double* sum;
     double* sq_sum;
@@ -99,7 +100,8 @@ double find_average_and_std_parallel(std::vector<double>& array)
     pthread_mutex_init(&sum_mutex, NULL);
     pthread_mutex_init(&sq_sum_mutex, NULL);
 
-    for(size_t i = 0; i < NUM_THREADS; ++i) {
+    for(size_t i = 0; i < NUM_THREADS; ++i)
+    {
         thread_data_array[i].start = array.begin() + i * CHUNK_SIZE;
         thread_data_array[i].end = (i == NUM_THREADS - 1 ? array.end() : thread_data_array[i].start + CHUNK_SIZE);
         thread_data_array[i].sum = &sum;
@@ -110,7 +112,8 @@ double find_average_and_std_parallel(std::vector<double>& array)
         pthread_create(&threads[i], NULL, find_average_and_std_thread, &thread_data_array[i]);
     }
 
-    for(size_t i = 0; i < NUM_THREADS; ++i) {
+    for(size_t i = 0; i < NUM_THREADS; ++i)
+    {
         pthread_join(threads[i], NULL);
     }
 

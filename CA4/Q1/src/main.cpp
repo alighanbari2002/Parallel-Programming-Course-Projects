@@ -14,7 +14,8 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct {
+typedef struct
+{
     double* arr;
     size_t start, end;
     double min_element;
