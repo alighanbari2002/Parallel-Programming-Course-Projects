@@ -5,8 +5,7 @@
 #include <x86intrin.h>
 #endif
 
-typedef union
-{
+typedef union {
 	__m128i 			int128;
 	
 	unsigned char		m128_u8[16];
@@ -22,15 +21,13 @@ typedef union
 	int64_t				m128_i64[4];
 } intVec;
 
-typedef union
-{
+typedef union {
 	__m128 				f128;
 
 	float				f32[4];
 } floatVec;
 
-typedef enum
-{
+typedef enum {
     u8,
     i8,
     u16,

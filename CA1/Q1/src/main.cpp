@@ -150,7 +150,7 @@ unsigned find_mask_width(unsigned int count_item)
 
     return mask_width;
 
-    // other implementation
+    // Other implementation
     // __asm__ volatile(
     // #ifdef __x86_64__
     // "push %%rcx\n\t"
@@ -211,10 +211,10 @@ unsigned char get_nzb_subID(unsigned char fullID, unsigned char max_subID_value,
 
 int get_num_active_cores()
 {
-    // implementation of this function was inspired by these references:
-    // https://www.prowaretech.com/archive/CPU_ID/Detecting_Multi-Core_Processors.htm
-    // http://software.intel.com/en-us/articles/detecting-multi-core-processor-topology-in-an-ia-32-platform
-	// - Behrad Elmi & Ali Ghanbari
+    // Implementation of this function was inspired by these references:
+    // - https://www.prowaretech.com/archive/CPU_ID/Detecting_Multi-Core_Processors.htm
+    // - http://software.intel.com/en-us/articles/detecting-multi-core-processor-topology-in-an-ia-32-platform
+	// (Behrad Elmi & Ali Ghanbari)
 
     cpu_set_t cset;
     unsigned int maxLP_per_core = 0;
@@ -244,10 +244,9 @@ int get_num_active_cores()
             usleep(0); // Ensure this thread is on the affinitized CPU
             apic_ID = get_initial_apic_ID();
             // 
-            // store SMT_ID and Core_ID of each logical processor
+            // Store SMT_ID and coreID of each logical processor
             // Shift value for SMT_ID is 0
-            // Shift value for Core_ID is the mask width for maximum
-            // logical processors per core
+            // Shift value for coreID is the mask width for maximum logical processors per core
             //
             tbl_SMT_ID[j] = get_nzb_subID(apic_ID, maxLP_per_core, 0);
             tbl_coreID[j] = get_nzb_subID(apic_ID,
@@ -277,10 +276,9 @@ int get_num_active_cores()
         for(i = 0; i < core_num; ++i)
         {
             //
-            // we may be comparing bit-fields of logical processors
+            // We may be comparing bit-fields of logical processors
             // residing in different packages, the code below assumes
-            // that the bit-masks are the same on all processors in
-            // the system
+            // that the bit-masks are the same on all processors in the system
             //
             if((tbl_packageID[processor_num] | tbl_coreID[processor_num]) == coreID_bucket[i])
             {
