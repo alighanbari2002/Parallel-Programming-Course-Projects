@@ -25,26 +25,19 @@ void generate_random_array(double*& array, const size_t& size)
 
 double find_average_and_std_serial(double*& array, const size_t& size)
 {
-	double sum = 0, average;
-	double sum_squared_diff = 0, difference, standard_deviation;
-	size_t i;
-
 	double start = omp_get_wtime();
 
-	// Average
-	for (i = 0; i < size; ++i)
-	{
-		sum += array[i];
-	}
-	average = sum / size;
+	double sum = 0, sq_sum = 0, average, standard_deviation;
+	size_t i;
 
-	// Standard Deviation
 	for (i = 0; i < size; ++i)
-	{
-		difference = array[i] - average;
-		sum_squared_diff += difference * difference;
-	}
-	standard_deviation = sqrt(sum_squared_diff / size);
+    {
+		sum += array[i];
+        sq_sum += array[i] * array[i];
+    }
+
+	average = sum / size;
+	standard_deviation = sqrt(sq_sum / size - average * average);
 
 	double finish = omp_get_wtime();
 	double execution_time = (finish - start) * pow(10, 9);
@@ -59,30 +52,21 @@ double find_average_and_std_serial(double*& array, const size_t& size)
 
 double find_average_and_std_parallel(double*& array, const size_t& size)
 {
-	double sum = 0, average;
-	double sum_squared_diff = 0, difference, standard_deviation;
-	size_t i;
-
 	double start = omp_get_wtime();
 
-	// Average
-	#pragma omp parallel for simd default(shared) private(i) reduction(+:sum) \
+	double sum = 0, sq_sum = 0, average, standard_deviation;
+	size_t i;
+
+	#pragma omp parallel for simd default(shared) private(i) reduction(+:sum,sq_sum) \
 			schedule(auto) num_threads(NUM_THREADS)
 		for (i = 0; i < size; ++i)
 		{
 			sum += array[i];
+			sq_sum += array[i] * array[i];
 		}
-	average = sum / size;
 
-	// Standard Deviation
-	#pragma omp parallel for simd default(shared) private(difference, i) \
-			reduction(+:sum_squared_diff) schedule(auto) num_threads(NUM_THREADS)
-		for (i = 0; i < size; ++i)
-		{
-			difference = array[i] - average;
-			sum_squared_diff += difference * difference;
-		}
-	standard_deviation = sqrt(sum_squared_diff / size);
+	average = sum / size;
+	standard_deviation = sqrt(sq_sum / size - average * average);
 
 	double finish = omp_get_wtime();
 	double execution_time = (finish - start) * pow(10, 9);
