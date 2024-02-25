@@ -1,12 +1,16 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
+#include <stdio.h>
 #include <math.h>
+#include <sstream>
 #include <chrono>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 #define N 15
 
@@ -65,12 +69,17 @@ int main()
 
     delete queens;
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     printf("Serial Version\n");
     printf("==============\n");
-    printf("Number of solutions: %d\n", solutions_count);
-    printf("Time taken: %lf (ns)\n", execution_time);
+    printf("Number of Solutions: %d\n", solutions_count);
+    printf("Run Time (ns): %s\n", ss.str().c_str());
 
     return 0;
 }

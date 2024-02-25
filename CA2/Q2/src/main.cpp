@@ -1,10 +1,11 @@
 #include <iostream>
+#include <sstream>
 #include <random>
-#include <stdio.h>
+#include <chrono>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include <chrono>
 #ifdef 		_WIN32
 #include <intrin.h>
 #else
@@ -16,6 +17,10 @@ using std::uniform_real_distribution;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
 
@@ -30,7 +35,7 @@ void generate_random_array(float*& array, const size_t& size)
 	}
 }
 
-double find_average_and_std_serial(float*& array, const size_t& size)
+ll find_average_and_std_serial(float*& array, const size_t& size)
 {
 	double sums[4] = {0.0}, sq_sums[4] = {0.0}, sum, sq_sum, average, standard_deviation;
 	size_t i;
@@ -68,17 +73,22 @@ double find_average_and_std_serial(float*& array, const size_t& size)
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-	printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
 	return execution_time;
 }
 
-double find_average_and_std_parallel(float*& array, const size_t& size)
+ll find_average_and_std_parallel(float*& array, const size_t& size)
 {
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 	size_t i;
@@ -105,12 +115,17 @@ double find_average_and_std_parallel(float*& array, const size_t& size)
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-    printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
     return execution_time;
 }
@@ -129,12 +144,12 @@ int main()
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
     
-	double serial_time   = find_average_and_std_serial(array, ARRAY_SIZE);
-	double parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);
+	ll serial_time = find_average_and_std_serial(array, ARRAY_SIZE);
+	ll parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);
 
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
 
 	return 0;
 }

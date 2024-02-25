@@ -1,18 +1,23 @@
 #include <iostream>
-#include <random>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <unistd.h>
-#include <chrono>
 #include <pthread.h>
+#include <sstream>
+#include <random>
+#include <chrono>
 
 using std::default_random_engine; 
 using std::uniform_real_distribution;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 typedef struct {
     double* arr;
@@ -36,7 +41,7 @@ void generate_random_array(double*& array, const size_t& size)
     }
 }
 
-double find_min_serial(double*& array, const size_t& size)
+ll find_min_serial(double*& array, const size_t& size)
 {
 	double min_element = array[0];
 	int min_index = 0;
@@ -57,12 +62,17 @@ double find_min_serial(double*& array, const size_t& size)
 	// Stop the timer
 	auto finish = high_resolution_clock::now();
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
 	return execution_time;
 }
@@ -85,7 +95,7 @@ void* find_min_thread(void* arg)
     pthread_exit(NULL);
 }
 
-double find_min_parallel(double*& array, const size_t& size)
+ll find_min_parallel(double*& array, const size_t& size)
 {
     double min_element = array[0];
 	int min_index = 0;
@@ -132,13 +142,18 @@ double find_min_parallel(double*& array, const size_t& size)
 
 	// Stop the timer
 	auto finish = high_resolution_clock::now();
-	
-    double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
-    printf("\nParallel Method:\n");
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
+
+	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
 	return execution_time;
 }
@@ -157,12 +172,12 @@ int main()
 	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	double serial_time   = find_min_serial(array, ARRAY_SIZE);
-	double parallel_time = find_min_parallel(array, ARRAY_SIZE);
-	
+	ll serial_time = find_min_serial(array, ARRAY_SIZE);
+	ll parallel_time = find_min_parallel(array, ARRAY_SIZE);
+
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
-	
+	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+
 	return 0;
 }

@@ -1,6 +1,7 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <omp.h>
+#include <sstream>
 #include <type_traits>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -9,6 +10,10 @@ using cv::Mat;
 using cv::imwrite;
 using cv::imread;
 using cv::IMREAD_GRAYSCALE;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 #define FRONT_IAMGE "../assets/front.png"
 #define LOGO_IMAGE  "../assets/logo.png"
@@ -24,7 +29,7 @@ unsigned int LOGO_COL;
 unsigned int FRONT_ROW;
 unsigned int FRONT_COL;
 
-double serial_implementation()
+ll serial_implementation()
 {
     Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
     size_t row, col;
@@ -59,15 +64,20 @@ double serial_implementation()
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
-    
-	double execution_time = (finish - start) * pow(10, 9);
 
-    printf("\t- Serial Method: %.4lf\n", execution_time);
+	ll execution_time = (finish - start) * pow(10, 9);
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
+
+    printf("\t- Serial Method: %s\n", ss.str().c_str());
 
     return execution_time;
 }
 
-double parallel_implementation()
+ll parallel_implementation()
 {
     Mat out_img_parallel(FRONT_ROW, FRONT_COL, CV_8U);
     size_t row, col;
@@ -104,9 +114,14 @@ double parallel_implementation()
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	double execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish - start) * pow(10, 9);
 
-    printf("\t- Parallel Method: %.4lf\n", execution_time);
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
+
+    printf("\t- Parallel Method: %s\n", ss.str().c_str());
 
     return execution_time;
 }
@@ -141,10 +156,10 @@ int main()
 	omp_set_num_threads(num_threads);
 
     printf("\nRun Time (ns):\n");
-    double serial_time   = serial_implementation();
-	double parallel_time = parallel_implementation();
+    ll serial_time = serial_implementation();
+	ll parallel_time = parallel_implementation();
 
-	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
 
     logo.release();
     front.release();

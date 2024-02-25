@@ -3,8 +3,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <unistd.h>
-#include <chrono>
 #include <pthread.h>
+#include <sstream>
+#include <chrono>
 
 using cv::Mat;
 using cv::imwrite;
@@ -13,6 +14,10 @@ using cv::IMREAD_GRAYSCALE;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 typedef struct {
     size_t row;
@@ -31,7 +36,7 @@ Mat img2;
 unsigned int NROWS;
 unsigned int NCOLS;
 
-double serial_implementation()
+ll serial_implementation()
 {
     Mat out_img_serial(NROWS, NCOLS, CV_8U);
     size_t row, col;
@@ -52,12 +57,17 @@ double serial_implementation()
 	// Stop the timer
 	auto finish = high_resolution_clock::now();
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-    printf("\t- Serial Method: %.4lf\n", execution_time);
+    printf("\t- Serial Method: %s\n", ss.str().c_str());
 
     return execution_time;
 }
@@ -80,7 +90,7 @@ void* process_image(void* arg)
     pthread_exit(NULL);
 }
 
-double parallel_implementation()
+ll parallel_implementation()
 {
     Mat out_img_parallel(NROWS, NCOLS, CV_8U);
     size_t i;
@@ -126,12 +136,17 @@ double parallel_implementation()
 	// Stop the timer
 	auto finish = high_resolution_clock::now();
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-    printf("\t- Parallel Method: %.4lf\n", execution_time);
+    printf("\t- Parallel Method: %s\n", ss.str().c_str());
     
     return execution_time;
 }
@@ -160,10 +175,10 @@ int main()
     NCOLS = img1.cols;
 
     printf("\nRun Time (ns):\n");
-    double serial_time   = serial_implementation();
-	double parallel_time = parallel_implementation();
+    ll serial_time = serial_implementation();
+	ll parallel_time = parallel_implementation();
 
-	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
 
     img1.release();
     img2.release();

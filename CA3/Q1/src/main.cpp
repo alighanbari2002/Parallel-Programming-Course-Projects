@@ -1,15 +1,20 @@
 #include <iostream>
+#include <sstream>
 #include <random>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #include <math.h>
 #include <omp.h>
 
-#define ARRAY_SIZE 1048576 // 2 ^ 20
-
 using std::default_random_engine; 
 using std::uniform_real_distribution;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
+
+#define ARRAY_SIZE 1048576 // 2 ^ 20
 
 void generate_random_array(float*& array, const size_t& size)
 {
@@ -22,7 +27,7 @@ void generate_random_array(float*& array, const size_t& size)
 	}
 }
 
-double find_min_serial(float*& array, const size_t& size)
+ll find_min_serial(float*& array, const size_t& size)
 {
 	float min_element = array[0];
 	int min_index = 0;
@@ -43,17 +48,22 @@ double find_min_serial(float*& array, const size_t& size)
 	// Stop the timer
 	double finish = omp_get_wtime();
 
-	double execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish - start) * pow(10, 9);
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
 	return execution_time;
 }
 
-double find_min_parallel(float*& array, const size_t& size)
+ll find_min_parallel(float*& array, const size_t& size)
 {
 	float min_element = array[0], local_min_element = array[0];
 	int min_index = 0, local_min_index = 0;
@@ -86,12 +96,17 @@ double find_min_parallel(float*& array, const size_t& size)
 	// Stop the timer
 	double finish = omp_get_wtime();
 
-	double execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish - start) * pow(10, 9);
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
 	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %.4lf\n", execution_time);
+	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
 
 	return execution_time;
 }
@@ -113,12 +128,12 @@ int main()
 	int num_threads = omp_get_max_threads() - 1;
 	omp_set_num_threads(num_threads);
 
-	double serial_time   = find_min_serial(array, ARRAY_SIZE);
-	double parallel_time = find_min_parallel(array, ARRAY_SIZE);
+	ll serial_time = find_min_serial(array, ARRAY_SIZE);
+	ll parallel_time = find_min_parallel(array, ARRAY_SIZE);
 	
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", serial_time / parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
 	
 	return 0;
 }

@@ -1,15 +1,19 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
+#include <stdio.h>
 #include <math.h>
+#include <omp.h>
+#include <sstream>
 #include <chrono>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
+using std::stringstream;
+using std::locale;
+
+typedef long long ll;
 
 #define N 15
-#define NUM_THREADS omp_get_max_threads() - 1
 
 int solutions_count;
 
@@ -25,8 +29,7 @@ int put(int*& queens, int row, int column)
         }
     }
 
-    #pragma omp critical
-        queens[row] = column;
+    queens[row] = column;
     
     if(row == N - 1)
     {
@@ -48,7 +51,7 @@ void solve(int*& queens)
 {
 	int i;
 
-	#pragma omp parallel for default(shared) private(i) schedule(auto) num_threads(NUM_THREADS)
+	#pragma omp parallel for default(shared) private(i) schedule(auto)
 		for(i = 0; i < N; ++i)
 		{
 			put(queens, 0, i);
@@ -58,6 +61,9 @@ void solve(int*& queens)
 int main()
 {
     int* queens = new int[N];
+
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
 
     // Start the timer
     auto start = high_resolution_clock::now();
@@ -69,12 +75,17 @@ int main()
 
     delete queens;
 
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+	// Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     printf("Parallel Version\n");
     printf("================\n");
-    printf("Number of solutions: %d\n", solutions_count);
-    printf("Time taken: %lf (ns)\n", execution_time);
+    printf("Number of Solutions: %d\n", solutions_count);
+    printf("Run Time (ns): %s\n", ss.str().c_str());
 
     return 0;
 }
