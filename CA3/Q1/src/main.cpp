@@ -7,20 +7,19 @@
 #include <omp.h>
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
-#define NUM_THREADS omp_get_max_threads() - 1
 
 using std::default_random_engine; 
 using std::uniform_real_distribution;
 
 void generate_random_array(float*& array, const size_t& size)
 {
-    default_random_engine generator(time(NULL));
-    uniform_real_distribution<float> distribution(0.0, pow(10, 6));
-    
+	default_random_engine generator(time(NULL));
+	uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+
 	for (size_t i = 0; i < size; ++i)
 	{
-        array[i] = distribution(generator);
-    }
+		array[i] = distribution(generator);
+	}
 }
 
 double find_min_serial(float*& array, const size_t& size)
@@ -29,6 +28,7 @@ double find_min_serial(float*& array, const size_t& size)
 	int min_index = 0;
 	size_t i;
 
+	// Start the timer
 	double start = omp_get_wtime();
 
 	for (i = 0; i < size; ++i)
@@ -40,7 +40,9 @@ double find_min_serial(float*& array, const size_t& size)
 		}
 	}
 
+	// Stop the timer
 	double finish = omp_get_wtime();
+
 	double execution_time = (finish - start) * pow(10, 9);
 
 	printf("\nSerial Method:\n");
@@ -57,9 +59,10 @@ double find_min_parallel(float*& array, const size_t& size)
 	int min_index = 0, local_min_index = 0;
 	size_t i = 0;
 
+	// Start the timer
 	double start = omp_get_wtime();
 
-	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i) num_threads(NUM_THREADS)
+	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i)
 	{
 		#pragma omp for simd aligned(array: 64) schedule(auto) nowait
 			for (i = 0; i < size; i++)
@@ -80,7 +83,9 @@ double find_min_parallel(float*& array, const size_t& size)
 		}
 	}
 
+	// Stop the timer
 	double finish = omp_get_wtime();
+
 	double execution_time = (finish - start) * pow(10, 9);
 
 	printf("\nParallel Method:\n");
@@ -104,6 +109,9 @@ int main()
 
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
+
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
 
 	double serial_time   = find_min_serial(array, ARRAY_SIZE);
 	double parallel_time = find_min_parallel(array, ARRAY_SIZE);

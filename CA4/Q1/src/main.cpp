@@ -14,8 +14,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct
-{
+typedef struct {
     double* arr;
     size_t start, end;
     double min_element;
@@ -31,7 +30,7 @@ void generate_random_array(double*& array, const size_t& size)
     default_random_engine generator(time(NULL));
     uniform_real_distribution<double> distribution(0.0, pow(10, 6));
 
-	for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         array[i] = distribution(generator);
     }
@@ -43,6 +42,7 @@ double find_min_serial(double*& array, const size_t& size)
 	int min_index = 0;
 	size_t i;
 
+	// Start the timer
 	auto start = high_resolution_clock::now();
 
 	for (i = 0; i < size; ++i)
@@ -54,7 +54,9 @@ double find_min_serial(double*& array, const size_t& size)
 		}
 	}
 
+	// Stop the timer
 	auto finish = high_resolution_clock::now();
+
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
 	printf("\nSerial Method:\n");
@@ -92,6 +94,7 @@ double find_min_parallel(double*& array, const size_t& size)
     pthread_t threads[NUM_THREADS];
     ThreadData thread_data_array[NUM_THREADS];
 
+	// Start the timer
 	auto start = high_resolution_clock::now();
 
     // Loop through the number of threads and create each thread
@@ -127,8 +130,10 @@ double find_min_parallel(double*& array, const size_t& size)
         }
     }
 
+	// Stop the timer
 	auto finish = high_resolution_clock::now();
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
+	
+    double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);

@@ -13,7 +13,6 @@ using cv::IMREAD_GRAYSCALE;
 #define IMAGE_02   "../assets/image_02.png"
 #define OUTPUT_DIR "../output/"
 #define M128_GRAY_INTERVAL 16
-#define NUM_THREADS omp_get_max_threads() - 1
 
 // Global variables
 Mat img1;
@@ -26,6 +25,7 @@ double serial_implementation()
     Mat out_img_serial(NROWS, NCOLS, CV_8U);
     size_t row, col;
 
+	// Start the timer
 	double start = omp_get_wtime();
 
     for(row = 0; row < NROWS; ++row)
@@ -38,11 +38,13 @@ double serial_implementation()
         }
     }
 
+	// Stop the timer
 	double finish = omp_get_wtime();
-	double execution_time = (finish - start) * pow(10, 9);
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
+
+	double execution_time = (finish - start) * pow(10, 9);
 
     printf("\t- Serial Method: %.4lf\n", execution_time);
 
@@ -54,9 +56,10 @@ double parallel_implementation()
     Mat out_img_parallel(NROWS, NCOLS, CV_8U);
     size_t row, col;
 
+	// Start the timer
 	double start = omp_get_wtime();
 
-    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto) num_threads(NUM_THREADS)
+    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
         for(row = 0; row < NROWS; ++row)
         {
             for(col = 0; col < NCOLS; ++col)
@@ -67,11 +70,13 @@ double parallel_implementation()
             }
         }
 
+	// Stop the timer
 	double finish = omp_get_wtime();
-	double execution_time = (finish - start) * pow(10, 9);
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
+
+	double execution_time = (finish - start) * pow(10, 9);
 
     printf("\t- Parallel Method: %.4lf\n", execution_time);
 
@@ -100,6 +105,9 @@ int main()
     
     NROWS = img1.rows;
     NCOLS = img1.cols;
+
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
 
     printf("\nRun Time (ns):\n");
     double serial_time   = serial_implementation();

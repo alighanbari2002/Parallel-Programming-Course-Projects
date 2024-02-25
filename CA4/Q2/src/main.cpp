@@ -16,8 +16,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct
-{
+typedef struct {
     std::vector<double>::iterator start, end;
     double* sum;
     double* sq_sum;
@@ -34,7 +33,7 @@ void generate_random_array(std::vector<double>& array, const size_t& size)
     default_random_engine generator(time(NULL));
     uniform_real_distribution<double> distribution(0.0, pow(10, 6));
 
-	for (size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         array[i] = distribution(generator);
     }
@@ -45,6 +44,7 @@ double find_average_and_std_serial(std::vector<double>& array, const size_t& siz
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 	size_t i;
 
+	// Start the timer
 	auto start = high_resolution_clock::now();
 
 	for (i = 0; i < size; ++i)
@@ -52,10 +52,13 @@ double find_average_and_std_serial(std::vector<double>& array, const size_t& siz
 		sum += array[i];
         sq_sum += array[i] * array[i];
     }
+
+	// Stop the timer
+	auto finish = high_resolution_clock::now();
+
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	auto finish = high_resolution_clock::now();
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
 	printf("\nSerial Method:\n");
@@ -92,13 +95,15 @@ double find_average_and_std_parallel(std::vector<double>& array)
 {
     double sum = 0, sq_sum = 0, average, standard_deviation;
 
-    auto start = high_resolution_clock::now();
-
     pthread_t threads[NUM_THREADS];
     ThreadData thread_data_array[NUM_THREADS];
+
     pthread_mutex_t sum_mutex, sq_sum_mutex;
     pthread_mutex_init(&sum_mutex, NULL);
     pthread_mutex_init(&sq_sum_mutex, NULL);
+
+	// Start the timer
+	auto start = high_resolution_clock::now();
 
     for(size_t i = 0; i < NUM_THREADS; ++i)
     {
@@ -117,10 +122,12 @@ double find_average_and_std_parallel(std::vector<double>& array)
         pthread_join(threads[i], NULL);
     }
 
+	// Stop the timer
+	auto finish = high_resolution_clock::now();
+
     average = sum / array.size();
     standard_deviation = sqrt(sq_sum / array.size() - average * average);
 
-    auto finish = high_resolution_clock::now();
     double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     printf("\nParallel Method:\n");

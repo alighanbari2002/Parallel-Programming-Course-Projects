@@ -15,8 +15,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 
-typedef struct
-{
+typedef struct {
     size_t row;
     Mat out_img;
 } ThreadData;
@@ -40,7 +39,8 @@ double serial_implementation()
     Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
     size_t row, col;
     
-    auto start = high_resolution_clock::now();
+	// Start the timer
+	auto start = high_resolution_clock::now();
 
     for(row = 0; row < FRONT_ROW; ++row)
     {
@@ -64,7 +64,9 @@ double serial_implementation()
         }
     }
 
-    auto finish = high_resolution_clock::now();
+	// Stop the timer
+	auto finish = high_resolution_clock::now();
+
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
@@ -126,7 +128,8 @@ double parallel_implementation()
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    auto start = high_resolution_clock::now();
+	// Start the timer
+	auto start = high_resolution_clock::now();
 
     // Assign the arguments for each thread
     for (i = 0; i < NUM_THREADS; ++i)
@@ -154,7 +157,9 @@ double parallel_implementation()
         }
     }
 
+	// Stop the timer
 	auto finish = high_resolution_clock::now();
+
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);

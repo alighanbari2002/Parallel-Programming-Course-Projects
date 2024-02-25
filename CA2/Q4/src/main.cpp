@@ -35,6 +35,7 @@ double serial_implementation()
 {
     Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
 
+    // Start the timer
 	auto start = high_resolution_clock::now();
 
     for(size_t row = 0; row < FRONT_ROW; ++row)
@@ -59,11 +60,13 @@ double serial_implementation()
         }
     }
 
+    // Stop the timer
 	auto finish = high_resolution_clock::now();
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
-    
+
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
+
+	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     printf("\t- Serial Method: %.4lf\n", execution_time);
 
@@ -77,6 +80,7 @@ double parallel_implementation()
     __m128i_u logo_part, front_part;
     __m128i_u* output_part;
 
+    // Start the timer
 	auto start = high_resolution_clock::now();
 
     for(size_t row = 0; row < FRONT_ROW; ++row)
@@ -95,7 +99,7 @@ double parallel_implementation()
 
                 logo_part = _mm_srli_epi16(logo_part, 2);
                 logo_part = _mm_and_si128(logo_part, _mm_set1_epi16(0xFF3F));
-                
+
                 // Multiply front by 3 achieving 0.75
                 // x <-- xxx xxxx xxxx xxxx <--0
                 // xxxx xxxx xxxx xxx0
@@ -112,11 +116,13 @@ double parallel_implementation()
         }
     }
 
+    // Stop the timer
 	auto finish = high_resolution_clock::now();
-	double execution_time = duration_cast<nanoseconds>(finish - start).count();
-    
+
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
+
+	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
     printf("\t- Parallel Method: %.4lf\n", execution_time);
 
