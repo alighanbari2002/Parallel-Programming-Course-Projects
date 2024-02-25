@@ -59,13 +59,20 @@ int main()
 {
     int* queens = new int[N];
 
+    // Start the timer
     auto start = high_resolution_clock::now();
 
     solve(queens);
 
+    // Stop the timer
     auto finish = high_resolution_clock::now();
+
+    delete queens;
+
 	double execution_time = duration_cast<nanoseconds>(finish - start).count();
 
+    printf("Parallel Version\n");
+    printf("================\n");
     printf("Number of solutions: %d\n", solutions_count);
     printf("Time taken: %lf (ns)\n", execution_time);
 
