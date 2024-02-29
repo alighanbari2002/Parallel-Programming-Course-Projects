@@ -127,34 +127,61 @@ ll find_min_parallel(float*& array, const size_t& size)
 {
 	size_t i;
 
-	__m128 min_elements = _mm_set1_ps(FLT_MAX);
-	__m128 increment = _mm_set1_ps(4);
+	const int UNROLL_FACTOR = 4; // The number of times to unroll the loop
+	const int VECTOR_SIZE   = 4; // The size of the SIMD vector
+	const __m128 INCREMENT  = _mm_set1_ps(VECTOR_SIZE);
+	const __m128 MAX_VALUE  = _mm_set1_ps(FLT_MAX);
+
+	__m128 min_elements = MAX_VALUE;
 	__m128 indexes = _mm_setr_ps(0, 1, 2, 3);
-	__m128 min_indexes = _mm_setr_ps(0, 1, 2, 3);
+	__m128 min_indexes = indexes;
 	__m128 value, lt;
+
+	float array_values[VECTOR_SIZE], array_indexes[VECTOR_SIZE];
+	float min_element;
+	int min_index;
 
 	// Start the timer
 	auto start = high_resolution_clock::now();
 
-	for (i = 0; i < size; i += 4)
+	for (i = 0; i < size; i += UNROLL_FACTOR * VECTOR_SIZE)
 	{
+		// Load the values from the array and compare them with the minimum elements
 		value = _mm_loadu_ps(&array[i]);
-
 		lt = _mm_cmpgt_ps(min_elements, value);
 		min_elements = _mm_blendv_ps(min_elements, value, lt);
 		min_indexes = _mm_blendv_ps(min_indexes, indexes, lt);
+		indexes = _mm_add_ps(indexes, INCREMENT);
 
-		indexes = _mm_add_ps(indexes, increment);
+		// Repeat the same process for the next values
+		value = _mm_loadu_ps(&array[i + VECTOR_SIZE]);
+		lt = _mm_cmpgt_ps(min_elements, value);
+		min_elements = _mm_blendv_ps(min_elements, value, lt);
+		min_indexes = _mm_blendv_ps(min_indexes, indexes, lt);
+		indexes = _mm_add_ps(indexes, INCREMENT);
+
+		// Repeat the same process for the next values
+		value = _mm_loadu_ps(&array[i + 2 * VECTOR_SIZE]);
+		lt = _mm_cmpgt_ps(min_elements, value);
+		min_elements = _mm_blendv_ps(min_elements, value, lt);
+		min_indexes = _mm_blendv_ps(min_indexes, indexes, lt);
+		indexes = _mm_add_ps(indexes, INCREMENT);
+
+		// Repeat the same process for the next values
+		value = _mm_loadu_ps(&array[i + 3 * VECTOR_SIZE]);
+		lt = _mm_cmpgt_ps(min_elements, value);
+		min_elements = _mm_blendv_ps(min_elements, value, lt);
+		min_indexes = _mm_blendv_ps(min_indexes, indexes, lt);
+		indexes = _mm_add_ps(indexes, INCREMENT);
 	}
 
-	float array_values[4], array_indexes[4];
 	_mm_storeu_ps(array_values, min_elements);
 	_mm_storeu_ps(array_indexes, min_indexes);
 
-	float min_element = array_values[0];
-	int min_index = (int) array_indexes[0];
+	min_element = array_values[0];
+	min_index = (int) array_indexes[0];
 
-	for (i = 1; i < 4; ++i)
+	for (i = 1; i < VECTOR_SIZE; ++i)
 	{
 		if (array_values[i] < min_element)
 		{
