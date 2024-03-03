@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <chrono>
 #include <sstream>
+#include <cassert>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #ifdef 		_WIN32

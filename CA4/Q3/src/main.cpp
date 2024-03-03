@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <algorithm>
+#include <cassert>
 #include <sstream>
 #include <chrono>
 

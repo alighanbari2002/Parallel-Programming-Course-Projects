@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <sstream>
+#include <cassert>
 #include <type_traits>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>

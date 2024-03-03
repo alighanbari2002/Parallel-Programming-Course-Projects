@@ -6,6 +6,7 @@
 #include <opencv2/highgui.hpp>
 #include <pthread.h>
 #include <algorithm>
+#include <cassert>
 #include <sstream>
 #include <chrono>
 
