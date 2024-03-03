@@ -69,6 +69,9 @@ ll find_min_parallel(float*& array, const size_t& size)
 	int min_index = 0, local_min_index = 0;
 	size_t i = 0;
 
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
+
 	// Start the timer
 	double start = omp_get_wtime();
 
@@ -124,9 +127,6 @@ int main()
 
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
-
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
 
 	ll serial_time = find_min_serial(array, ARRAY_SIZE);
 	ll parallel_time = find_min_parallel(array, ARRAY_SIZE);

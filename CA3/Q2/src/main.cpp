@@ -67,6 +67,9 @@ ll find_average_and_std_parallel(double*& array, const size_t& size)
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 	size_t i;
 
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
+
 	// Start the timer
 	double start = omp_get_wtime();
 
@@ -112,9 +115,6 @@ int main()
 
 	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
-
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
 
 	ll serial_time = find_average_and_std_serial(array, ARRAY_SIZE);
 	ll parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);

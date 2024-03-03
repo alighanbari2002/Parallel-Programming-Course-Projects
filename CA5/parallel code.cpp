@@ -51,6 +51,9 @@ void solve(int*& queens)
 {
 	int i;
 
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
+
 	#pragma omp parallel for default(shared) private(i) schedule(auto)
 		for(i = 0; i < N; ++i)
 		{
@@ -61,9 +64,6 @@ void solve(int*& queens)
 int main()
 {
     int* queens = new int[N];
-
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
 
     // Start the timer
     auto start = high_resolution_clock::now();
