@@ -5,6 +5,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <pthread.h>
+#include <algorithm>
 #include <sstream>
 #include <chrono>
 
@@ -17,108 +18,90 @@ using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 using std::stringstream;
 using std::locale;
+using std::min;
 
 typedef long long ll;
 
 typedef struct {
-    size_t row;
-    Mat out_img;
-} ThreadData;
+    const Mat* front;
+    const Mat* logo;
+    Mat* out_img;
+    double alpha;
+    int start_row;
+    int end_row;
+} thread_data_t;
 
 #define FRONT_IAMGE "../assets/front.png"
 #define LOGO_IMAGE  "../assets/logo.png"
 #define OUTPUT_DIR  "../output/"
-#define ALPHA 0.25
-#define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) - 1)
 
-// Global variables
-Mat logo;
-Mat front;
-unsigned int LOGO_ROW;
-unsigned int LOGO_COL;
-unsigned int FRONT_ROW;
-unsigned int FRONT_COL;
+const double ALPHA = 0.25;
 
-ll serial_implementation()
+ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
 {
-    Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
-    size_t row, col;
+    Mat out_img_serial = front.clone();
 
-	// Start the timer
+    // Start the timer
 	auto start = high_resolution_clock::now();
 
-    for(row = 0; row < FRONT_ROW; ++row)
+    for(int row = 0; row < out_img_serial.rows; ++row)
     {
-        for(col = 0; col < FRONT_COL; ++col)
-        {
-            if(row <= LOGO_ROW && col <= LOGO_COL)
+        for(int col = 0; col < out_img_serial.cols; ++col)
+        {            
+            if(row < logo.rows && col < logo.cols)
             {
-                if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                int new_pixel = front.at<uchar>(row, col) + alpha * logo.at<uchar>(row, col);
+
+                if(new_pixel > 255)
                 {
-                    out_img_serial.at<uchar> (row, col) = 255;
+                    out_img_serial.at<uchar>(row, col) = 255;
                 }
                 else
                 {
-                    out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                    out_img_serial.at<uchar>(row, col) = new_pixel;
                 }
-            }
-            else
-            {
-                out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col);
             }
         }
     }
 
-	// Stop the timer
+    // Stop the timer
 	auto finish = high_resolution_clock::now();
-
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
-
-	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
+
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+    // Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     printf("\t- Serial Method: %s\n", ss.str().c_str());
 
     return execution_time;
 }
 
-void* process_image(void* arg)
+void* blend(void* arg)
 {
-    ThreadData* data = (ThreadData*)arg;
-    size_t start_row = data->row * (FRONT_ROW / NUM_THREADS);
-    size_t end_row;
-    if (data->row == NUM_THREADS - 1) // last thread
-    {
-        end_row = FRONT_ROW;
-    }
-    else
-    {
-        end_row = (data->row + 1) * (FRONT_ROW / NUM_THREADS);
-    }
+    thread_data_t* data = (thread_data_t*) arg;
 
-    for (size_t row = start_row; row < end_row; ++row)
+    for(int row = data->start_row; row < data->end_row; ++row)
     {
-        for (size_t col = 0; col < FRONT_COL; ++col)
-        {
-            if(row <= LOGO_ROW && col <= LOGO_COL)
+        for(int col = 0; col < data->out_img->cols; ++col)
+        {            
+            if(row < data->logo->rows && col < data->logo->cols)
             {
-                if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                int new_pixel = data->front->at<uchar>(row, col) + data->alpha * data->logo->at<uchar>(row, col);
+
+                if(new_pixel > 255)
                 {
-                    data->out_img.at<uchar> (row, col) = 255;
+                    data->out_img->at<uchar>(row, col) = 255;
                 }
                 else
                 {
-                    data->out_img.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                    data->out_img->at<uchar>(row, col) = new_pixel;
                 }
-            }
-            else
-            {
-                data->out_img.at<uchar> (row, col) = front.at<uchar> (row, col);
             }
         }
     }
@@ -126,28 +109,45 @@ void* process_image(void* arg)
     pthread_exit(NULL);
 }
 
-ll parallel_implementation()
+ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
 {
-    Mat out_img_parallel(FRONT_ROW, FRONT_COL, CV_8U);
-    size_t i;
+    Mat out_img_parallel = front.clone();
+    
+    int num_procs = sysconf(_SC_NPROCESSORS_ONLN) - 1;
+    int num_threads = min(num_procs, out_img_parallel.rows);
 
-    pthread_t threads[NUM_THREADS];
-    ThreadData thread_data_array[NUM_THREADS];
+    pthread_t threads[num_threads];
+    thread_data_t thread_data_array[num_threads];
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
+    int rows_per_thread = out_img_parallel.rows / num_threads;
+    int remainder = out_img_parallel.rows % num_threads;
+
+    int i;
+
 	// Start the timer
 	auto start = high_resolution_clock::now();
 
     // Assign the arguments for each thread
-    for (i = 0; i < NUM_THREADS; ++i)
+    for(i = 0; i < num_threads; ++i)
     {
-        thread_data_array[i].row = i;
-        thread_data_array[i].out_img = out_img_parallel;
+        thread_data_array[i].front = &front;
+        thread_data_array[i].logo = &logo;
+        thread_data_array[i].out_img = &out_img_parallel;
+        thread_data_array[i].alpha = alpha;
+        thread_data_array[i].start_row = i * rows_per_thread;
+        thread_data_array[i].end_row = (i + 1) * rows_per_thread;
 
-        int rc = pthread_create(&threads[i], &attr, process_image, &thread_data_array[i]);
+        // Adjust the row range for the last thread if there is a remainder
+        if(i == num_threads - 1 && remainder > 0)
+        {
+            thread_data_array[i].end_row += remainder;
+        }
+
+        int rc = pthread_create(&threads[i], &attr, blend, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -157,7 +157,7 @@ ll parallel_implementation()
 
     // Free the attribute and join the threads
     pthread_attr_destroy(&attr);
-    for (i = 0; i < NUM_THREADS; ++i)
+    for (i = 0; i < num_threads; ++i)
     {
         int rc = pthread_join(threads[i], NULL);
         if (rc)
@@ -196,29 +196,21 @@ int main()
 {
 	print_group_info();
 
-    // Load frames
-    logo  = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
-    front = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
-    if (logo.size().width > front.size().width ||
-        logo.size().height > front.size().height)
-    {
-        printf("Illegal frames!\n");
-        exit(EXIT_FAILURE);
-    }
+    Mat front_image = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
+    Mat logo_image = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
 
-    LOGO_ROW  = logo.rows;
-    LOGO_COL  = logo.cols;
-    FRONT_ROW = front.rows;
-    FRONT_COL = front.cols;
+    CV_Assert(logo_image.size().width <= front_image.size().width && 
+              logo_image.size().height <= front_image.size().height && 
+              "Illegal frames: logo_image is larger than front_image");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = serial_implementation();
-	ll parallel_time = parallel_implementation();
+    ll serial_time = blend_images_serial(front_image, logo_image, ALPHA);
+	ll parallel_time = blend_images_parallel(front_image, logo_image, ALPHA);
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
-    logo.release();
-    front.release();
+    front_image.release();
+    logo_image.release();
 
     return 0;
 }

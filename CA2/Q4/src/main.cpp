@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <chrono>
 #include <sstream>
+#include <cassert>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #ifdef 		_WIN32
@@ -25,42 +26,33 @@ typedef long long ll;
 #define FRONT_IAMGE "../assets/front.png"
 #define LOGO_IMAGE  "../assets/logo.png"
 #define OUTPUT_DIR  "../output/"
-#define M128_GRAY_INTERVAL 16
-#define ALPHA 0.25
 
-// Global variables
-Mat logo;
-Mat front;
-unsigned int LOGO_ROW;
-unsigned int LOGO_COL;
-unsigned int FRONT_ROW;
-unsigned int FRONT_COL;
+const double ALPHA = 0.25;
+const int M128_GRAY_INTERVAL = 16;
 
-ll serial_implementation()
+ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
 {
-    Mat out_img_serial(FRONT_ROW, FRONT_COL, CV_8U);
+    Mat out_img_serial = front.clone();
 
     // Start the timer
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; ++row)
+    for(int row = 0; row < out_img_serial.rows; ++row)
     {
-        for(size_t col = 0; col < FRONT_COL; ++col)
-        {
-            if(row <= LOGO_ROW && col <= LOGO_COL)
+        for(int col = 0; col < out_img_serial.cols; ++col)
+        {            
+            if(row < logo.rows && col < logo.cols)
             {
-                if(front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col) > 255)
+                int new_pixel = front.at<uchar>(row, col) + alpha * logo.at<uchar>(row, col);
+
+                if(new_pixel > 255)
                 {
-                    out_img_serial.at<uchar> (row, col) = 255;
+                    out_img_serial.at<uchar>(row, col) = 255;
                 }
                 else
                 {
-                    out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col) + ALPHA * logo.at<uchar> (row, col);
+                    out_img_serial.at<uchar>(row, col) = new_pixel;
                 }
-            }
-            else
-            {
-                out_img_serial.at<uchar> (row, col) = front.at<uchar> (row, col);
             }
         }
     }
@@ -83,25 +75,25 @@ ll serial_implementation()
     return execution_time;
 }
 
-ll parallel_implementation()
+ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
 {
-    Mat out_img_parallel(FRONT_ROW, FRONT_COL, CV_8U);
-
+    Mat out_img_parallel = front.clone();
+    
     __m128i_u logo_part, front_part;
     __m128i_u* output_part;
 
     // Start the timer
 	auto start = high_resolution_clock::now();
 
-    for(size_t row = 0; row < FRONT_ROW; ++row)
+    for(int row = 0; row < out_img_parallel.rows; ++row)
     {
-        for(size_t col = 0; col < FRONT_COL; col += M128_GRAY_INTERVAL)
+        for(int col = 0; col < out_img_parallel.cols; col += M128_GRAY_INTERVAL)
         {
-            logo_part  = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(&logo.at<uchar> (row, col)));
-            front_part = _mm_loadu_si128(reinterpret_cast<__m128i_u*>(&front.at<uchar> (row, col)));
-            output_part   = reinterpret_cast<__m128i_u*>(&out_img_parallel.at<uchar> (row, col));
-                
-            if(row <= LOGO_ROW && col <= LOGO_COL - M128_GRAY_INTERVAL)
+            logo_part  = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(&logo.at<uchar>(row, col)));
+            front_part = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(&front.at<uchar>(row, col)));
+            output_part = reinterpret_cast<__m128i_u*>(&out_img_parallel.at<uchar>(row, col));
+
+            if(row < logo.rows && col < logo.cols - M128_GRAY_INTERVAL)
             {
                 // Divide by 4 
                 // 00 --> xxxx xxxx xxxx xx --> xx
@@ -114,14 +106,8 @@ ll parallel_implementation()
                 // x <-- xxx xxxx xxxx xxxx <--0
                 // xxxx xxxx xxxx xxx0
                 // xxxx xxx0 xxxx xxx0
-                // pf = _mm_slli_epi16(pf, 1);
-                // pf = _mm_and_si128(pf, _mm_set1_epi16(0xFEFF));
 
                 _mm_storeu_si128(output_part, _mm_adds_epu8(logo_part, front_part));
-            }
-            else
-            {
-                _mm_storeu_si128(output_part, front_part);
             }
         }
     }
@@ -155,29 +141,21 @@ int main()
 {
 	print_group_info();
 
-    // Load frames
-    logo  = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
-    front = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
-    if (logo.size().width > front.size().width ||
-        logo.size().height > front.size().height)
-    {
-        printf("Illegal frames!\n");
-        exit(EXIT_FAILURE);
-    }
+    Mat front_image = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
+    Mat logo_image = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
 
-    LOGO_ROW  = logo.rows;
-    LOGO_COL  = logo.cols;
-    FRONT_ROW = front.rows;
-    FRONT_COL = front.cols;
+    CV_Assert(logo_image.size().width <= front_image.size().width && 
+              logo_image.size().height <= front_image.size().height && 
+              "Illegal frames: logo_image is larger than front_image");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = serial_implementation();
-	ll parallel_time = parallel_implementation();
+    ll serial_time = blend_images_serial(front_image, logo_image, ALPHA);
+	ll parallel_time = blend_images_parallel(front_image, logo_image, ALPHA);
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
-    logo.release();
-    front.release();
+    front_image.release();
+    logo_image.release();
 
     return 0;
 }

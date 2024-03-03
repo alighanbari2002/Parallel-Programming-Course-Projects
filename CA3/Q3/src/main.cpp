@@ -17,28 +17,22 @@ typedef long long ll;
 #define IMAGE_01   "../assets/image_01.png"
 #define IMAGE_02   "../assets/image_02.png"
 #define OUTPUT_DIR "../output/"
-#define M128_GRAY_INTERVAL 16
 
-// Global variables
-Mat img1;
-Mat img2;
-unsigned int NROWS;
-unsigned int NCOLS;
+const int M128_GRAY_INTERVAL = 16;
 
-ll serial_implementation()
+ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 {
-    Mat out_img_serial(NROWS, NCOLS, CV_8U);
-    size_t row, col;
+    Mat out_img_serial(img1.rows, img1.cols, CV_8U);
 
 	// Start the timer
 	double start = omp_get_wtime();
 
-    for(row = 0; row < NROWS; ++row)
+    for(int row = 0; row < out_img_serial.rows; ++row)
     {
-        for(col = 0; col < NCOLS; ++col)
+        for(int col = 0; col < out_img_serial.cols; ++col)
         {
-            out_img_serial.at<uchar> (row, col) = abs(
-                img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
+            out_img_serial.at<uchar>(row, col) = abs(
+                img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
                 );
         }
     }
@@ -61,21 +55,23 @@ ll serial_implementation()
     return execution_time;
 }
 
-ll parallel_implementation()
+ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 {
-    Mat out_img_parallel(NROWS, NCOLS, CV_8U);
-    size_t row, col;
+    Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
+
+	int num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
 
 	// Start the timer
 	double start = omp_get_wtime();
 
     #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
-        for(row = 0; row < NROWS; ++row)
+        for(int row = 0; row < out_img_parallel.rows; ++row)
         {
-            for(col = 0; col < NCOLS; ++col)
+            for(int col = 0; col < out_img_parallel.cols; ++col)
             {
-                out_img_parallel.at<uchar> (row, col) = abs(
-                    img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
+                out_img_parallel.at<uchar>(row, col) = abs(
+                    img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
                     );
             }
         }
@@ -109,29 +105,20 @@ int main()
 {
 	print_group_info();
 
-    // Load frames
-    img1 = imread(IMAGE_01, IMREAD_GRAYSCALE);
-    img2 = imread(IMAGE_02, IMREAD_GRAYSCALE);
-    if (img1.size() != img2.size())
-    {
-        printf("Illegal frames!\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    NROWS = img1.rows;
-    NCOLS = img1.cols;
+    Mat image_01 = imread(IMAGE_01, IMREAD_GRAYSCALE);
+    Mat image_02 = imread(IMAGE_02, IMREAD_GRAYSCALE);
 
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
+    CV_Assert(image_01.size() == image_02.size() && 
+              "Illegal frames: image_01 and image_02 have different sizes");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = serial_implementation();
-	ll parallel_time = parallel_implementation();
+    ll serial_time = calculate_absolute_difference_serial(image_01, image_02);
+	ll parallel_time = calculate_absolute_difference_parallel(image_01, image_02);
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
-    img1.release();
-    img2.release();
+    image_01.release();
+    image_02.release();
     
     return 0;
 }

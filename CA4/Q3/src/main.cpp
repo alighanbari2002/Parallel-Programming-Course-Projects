@@ -4,6 +4,7 @@
 #include <opencv2/highgui.hpp>
 #include <unistd.h>
 #include <pthread.h>
+#include <algorithm>
 #include <sstream>
 #include <chrono>
 
@@ -16,104 +17,105 @@ using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 using std::stringstream;
 using std::locale;
+using std::min;
 
 typedef long long ll;
 
 typedef struct {
-    size_t row;
-    Mat img1, img2;
-    Mat out_img;
-} ThreadData;
+    const Mat* img1;
+    const Mat* img2;
+    Mat* out_img;
+    int start_row;
+    int end_row;
+} thread_data_t;
 
 #define IMAGE_01   "../assets/image_01.png"
 #define IMAGE_02   "../assets/image_02.png"
 #define OUTPUT_DIR "../output/"
-#define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) - 1)
 
-// Global variables
-Mat img1;
-Mat img2;
-unsigned int NROWS;
-unsigned int NCOLS;
-
-ll serial_implementation()
+ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 {
-    Mat out_img_serial(NROWS, NCOLS, CV_8U);
-    size_t row, col;
+    Mat out_img_serial(img1.rows, img1.cols, CV_8U);
 
-	// Start the timer
+    // Start the timer
 	auto start = high_resolution_clock::now();
 
-    for(row = 0; row < NROWS; ++row)
+    for(int row = 0; row < out_img_serial.rows; ++row)
     {
-        for(col = 0; col < NCOLS; ++col)
+        for(int col = 0; col < out_img_serial.cols; ++col)
         {
-            out_img_serial.at<uchar> (row, col) = abs(
-                img1.at<uchar> (row, col) - img2.at<uchar> (row, col)
+            out_img_serial.at<uchar>(row, col) = abs(
+                img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
                 );
         }
     }
 
-	// Stop the timer
+    // Stop the timer
 	auto finish = high_resolution_clock::now();
-
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
-
-	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
+
+	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+
+    // Use a string stream to format the output
+	stringstream ss;
+	ss.imbue(locale(""));
+	ss << execution_time;
 
     printf("\t- Serial Method: %s\n", ss.str().c_str());
 
     return execution_time;
 }
 
-void* process_image(void* arg)
+void* diff(void* arg)
 {
-    ThreadData* data = (ThreadData*)arg;
-    size_t start_row = data->row * (NROWS / NUM_THREADS);
-    size_t end_row = (data->row + 1) * (NROWS / NUM_THREADS);
+    thread_data_t* data = (thread_data_t*) arg;
 
-    for (size_t row = start_row; row < end_row; ++row)
+    for(int row = data->start_row; row < data->end_row; ++row)
     {
-        for (size_t col = 0; col < NCOLS; ++col)
+        for(int col = 0; col < data->out_img->cols; ++col)
         {
-            uchar diff = abs(data->img1.at<uchar>(row, col) - data->img2.at<uchar>(row, col));
-            data->out_img.at<uchar>(row, col) = diff;
+            data->out_img->at<uchar>(row, col) = abs(
+                data->img1->at<uchar>(row, col) - data->img2->at<uchar>(row, col)
+                );
         }
     }
 
     pthread_exit(NULL);
 }
 
-ll parallel_implementation()
+ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 {
-    Mat out_img_parallel(NROWS, NCOLS, CV_8U);
-    size_t i;
+    Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
 
-    pthread_t threads[NUM_THREADS];
-    ThreadData thread_data_array[NUM_THREADS];
+    int num_procs = sysconf(_SC_NPROCESSORS_ONLN) - 1;
+    int num_threads = min(num_procs, out_img_parallel.rows);
+
+    pthread_t threads[num_threads];
+    thread_data_t thread_data_array[num_threads];
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
+    int rows_per_thread = img1.rows / num_threads;
+
+    int i;
+
 	// Start the timer
 	auto start = high_resolution_clock::now();
 
     // Assign the arguments for each thread
-    for (i = 0; i < NUM_THREADS; ++i)
+    for(i = 0; i < num_threads; ++i)
     {
-        thread_data_array[i].row = i;
-        thread_data_array[i].img1 = img1;
-        thread_data_array[i].img2 = img2;
-        thread_data_array[i].out_img = out_img_parallel;
+        thread_data_array[i].img1 = &img1;
+        thread_data_array[i].img2 = &img2;
+        thread_data_array[i].out_img = &out_img_parallel;
+        thread_data_array[i].start_row = i * rows_per_thread;
+        thread_data_array[i].end_row = (i == num_threads - 1) ? img1.rows : (i + 1) * rows_per_thread;
 
-        int rc = pthread_create(&threads[i], &attr, process_image, &thread_data_array[i]);
+        int rc = pthread_create(&threads[i], &attr, diff, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -123,7 +125,7 @@ ll parallel_implementation()
 
     // Free the attribute and join the threads
     pthread_attr_destroy(&attr);
-    for (i = 0; i < NUM_THREADS; ++i)
+    for (i = 0; i < num_threads; ++i)
     {
         int rc = pthread_join(threads[i], NULL);
         if (rc)
@@ -162,26 +164,20 @@ int main()
 {
 	print_group_info();
 
-    // Load frames
-    img1 = imread(IMAGE_01, IMREAD_GRAYSCALE);
-    img2 = imread(IMAGE_02, IMREAD_GRAYSCALE);
-    if (img1.size() != img2.size())
-    {
-        printf("Illegal frames!\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    NROWS = img1.rows;
-    NCOLS = img1.cols;
+    Mat image_01 = imread(IMAGE_01, IMREAD_GRAYSCALE);
+    Mat image_02 = imread(IMAGE_02, IMREAD_GRAYSCALE);
+
+    CV_Assert(image_01.size() == image_02.size() && 
+              "Illegal frames: image_01 and image_02 have different sizes");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = serial_implementation();
-	ll parallel_time = parallel_implementation();
+    ll serial_time = calculate_absolute_difference_serial(image_01, image_02);
+	ll parallel_time = calculate_absolute_difference_parallel(image_01, image_02);
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
-    img1.release();
-    img2.release();
+    image_01.release();
+    image_02.release();
     
     return 0;
 }
