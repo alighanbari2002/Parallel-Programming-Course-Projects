@@ -20,15 +20,14 @@ using std::locale;
 typedef long long ll;
 
 typedef struct {
-    double* arr;
-    size_t start, end;
+    double* array;
+    size_t start;
+    size_t end;
     double min_element;
     int min_index;
-} ThreadData;
+} thread_data_t;
 
 #define ARRAY_SIZE 1048576 // 2 ^ 20
-#define NUM_THREADS static_cast<size_t>(sysconf(_SC_NPROCESSORS_ONLN) - 1)
-#define CHUNK_SIZE (ARRAY_SIZE / NUM_THREADS)
 
 void generate_random_array(double*& array, const size_t& size)
 {
@@ -45,12 +44,11 @@ ll find_min_serial(double*& array, const size_t& size)
 {
 	double min_element = array[0];
 	int min_index = 0;
-	size_t i;
 
 	// Start the timer
 	auto start = high_resolution_clock::now();
 
-	for (i = 0; i < size; ++i)
+	for (size_t i = 0; i < size; ++i)
     {
 		if (array[i] < min_element)
         {
@@ -77,20 +75,24 @@ ll find_min_serial(double*& array, const size_t& size)
 	return execution_time;
 }
 
-void* find_min_thread(void* arg)
+void* min_thread(void* arg)
 {
-    ThreadData* data = (ThreadData*)arg;
-    data->min_index = data->start;
-    data->min_element = data->arr[data->start];
+    thread_data_t* data = (thread_data_t*) arg;
 
-    for(size_t i = data->start + 1; i < data->end; ++i)
+    double local_min_element = data->array[data->start];
+    int local_min_index = data->start;
+
+    for (size_t i = data->start + 1; i <= data->end; ++i)
     {
-        if(data->arr[i] < data->min_element)
+        if (data->array[i] < local_min_element)
         {
-            data->min_index = i;
-            data->min_element = data->arr[i];
+            local_min_element = data->array[i];
+            local_min_index = i;
         }
     }
+
+    data->min_element = local_min_element;
+    data->min_index = local_min_index;
 
     pthread_exit(NULL);
 }
@@ -99,22 +101,28 @@ ll find_min_parallel(double*& array, const size_t& size)
 {
     double min_element = array[0];
 	int min_index = 0;
-	size_t i;
- 
-    pthread_t threads[NUM_THREADS];
-    ThreadData thread_data_array[NUM_THREADS];
 
+    int num_threads = sysconf(_SC_NPROCESSORS_ONLN) - 1;
+
+    pthread_t threads[num_threads];
+    thread_data_t thread_data_array[num_threads];
+
+    size_t chunk_size = size / num_threads;
+
+	int i;
+ 
 	// Start the timer
 	auto start = high_resolution_clock::now();
 
-    // Loop through the number of threads and create each thread
-    for(i = 0; i < NUM_THREADS; ++i)
+    // Assign the arguments for each thread
+    for (i = 0; i < num_threads; ++i)
     {
-        thread_data_array[i].arr = array;
-        thread_data_array[i].start = i * CHUNK_SIZE;
-        thread_data_array[i].end = (i + 1) * CHUNK_SIZE;
+        thread_data_array[i].array = array;
 
-        int rc = pthread_create(&threads[i], NULL, find_min_thread, &thread_data_array[i]);
+        thread_data_array[i].start = i * chunk_size;
+        thread_data_array[i].end = (i == num_threads - 1) ? (size - 1) : (thread_data_array[i].start + chunk_size - 1);
+
+        int rc = pthread_create(&threads[i], NULL, min_thread, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -122,11 +130,10 @@ ll find_min_parallel(double*& array, const size_t& size)
         }
     }
 
-    // Loop through the number of threads and join each thread
-    for(i = 0; i < NUM_THREADS; ++i)
+    // Wait for all the threads to finish and collect their results
+    for(i = 0; i < num_threads; ++i)
     {
-        void *status;
-        int rc = pthread_join(threads[i], &status);
+        int rc = pthread_join(threads[i], NULL);
         if (rc)
         {
             printf("ERROR: return code from pthread_join() is %d\n", rc);
@@ -135,8 +142,8 @@ ll find_min_parallel(double*& array, const size_t& size)
 
         if (thread_data_array[i].min_element < min_element)
         {
-            min_index = thread_data_array[i].min_index;
             min_element = thread_data_array[i].min_element;
+            min_index = thread_data_array[i].min_index;
         }
     }
 
@@ -177,7 +184,7 @@ int main()
 
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
 	return 0;
 }
