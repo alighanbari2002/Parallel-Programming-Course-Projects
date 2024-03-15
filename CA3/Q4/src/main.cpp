@@ -23,14 +23,14 @@ typedef long long ll;
 const double ALPHA = 0.25;
 const int M128_GRAY_INTERVAL = 16;
 
-ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
+ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_serial = front.clone();
 
     int row, col;
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
     for(row = 0; row < out_img_serial.rows; ++row)
     {
@@ -49,34 +49,34 @@ ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
     }
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Serial Method: %s\n", ss.str().c_str());
+    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
 
-ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
+ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_parallel = front.clone();
 
     int row, col;
 
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
+	int num_threads = omp_get_max_threads();
+	omp_set_num_threads(num_threads - 1);
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
     #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
         for(row = 0; row < out_img_parallel.rows; ++row)
@@ -96,19 +96,19 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
         }
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Parallel Method: %s\n", ss.str().c_str());
+    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -132,8 +132,8 @@ int main()
               "Illegal frames: logo_image is larger than front_image");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = blend_images_serial(front_image, logo_image, ALPHA);
-	ll parallel_time = blend_images_parallel(front_image, logo_image, ALPHA);
+    ll serial_time = image_blending_serial(front_image, logo_image, ALPHA);
+	ll parallel_time = image_blending_parallel(front_image, logo_image, ALPHA);
 
 	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 

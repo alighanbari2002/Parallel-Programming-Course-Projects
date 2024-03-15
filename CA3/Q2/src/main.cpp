@@ -27,13 +27,13 @@ void generate_random_array(double*& array, const size_t& size)
 	}
 }
 
-ll find_average_and_std_serial(double*& array, const size_t& size)
+ll find_avg_and_std_serial(double*& array, const size_t& size)
 {
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 	size_t i;
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
 	for (i = 0; i < size; ++i)
 	{
@@ -42,36 +42,36 @@ ll find_average_and_std_serial(double*& array, const size_t& size)
 	}
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4lf\n", average);
 	printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
 
-ll find_average_and_std_parallel(double*& array, const size_t& size)
+ll find_avg_and_std_parallel(double*& array, const size_t& size)
 {
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 	size_t i;
 
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
+	int num_threads = omp_get_max_threads();
+	omp_set_num_threads(num_threads - 1);
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
 	#pragma omp parallel for simd default(shared) private(i) \
 			reduction(+:sum,sq_sum) schedule(auto)
@@ -82,22 +82,22 @@ ll find_average_and_std_parallel(double*& array, const size_t& size)
 		}
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4lf\n", average);
 	printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -116,12 +116,12 @@ int main()
 	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	ll serial_time = find_average_and_std_serial(array, ARRAY_SIZE);
-	ll parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);
+	ll serial_time = find_avg_and_std_serial(array, ARRAY_SIZE);
+	ll parallel_time = find_avg_and_std_parallel(array, ARRAY_SIZE);
 
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
 	return 0;
 }

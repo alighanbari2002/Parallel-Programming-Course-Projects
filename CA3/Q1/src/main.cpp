@@ -27,14 +27,14 @@ void generate_random_array(float*& array, const size_t& size)
 	}
 }
 
-ll find_min_serial(float*& array, const size_t& size)
+ll min_search_serial(float*& array, const size_t& size)
 {
 	float min_element = array[0];
 	int min_index = 0;
 	size_t i;
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
 	for (i = 0; i < size; ++i)
 	{
@@ -46,34 +46,34 @@ ll find_min_serial(float*& array, const size_t& size)
 	}
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
 
-ll find_min_parallel(float*& array, const size_t& size)
+ll min_search_parallel(float*& array, const size_t& size)
 {
 	float min_element = array[0], local_min_element = array[0];
 	int min_index = 0, local_min_index = 0;
 	size_t i = 0;
 
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
+	int num_threads = omp_get_max_threads();
+	omp_set_num_threads(num_threads - 1);
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
 	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i)
 	{
@@ -97,19 +97,19 @@ ll find_min_parallel(float*& array, const size_t& size)
 	}
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
@@ -128,12 +128,12 @@ int main()
 	float *array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	ll serial_time = find_min_serial(array, ARRAY_SIZE);
-	ll parallel_time = find_min_parallel(array, ARRAY_SIZE);
+	ll serial_time = min_search_serial(array, ARRAY_SIZE);
+	ll parallel_time = min_search_parallel(array, ARRAY_SIZE);
 	
 	delete array;
 
-	printf("\nSpeedup: %.4lf\n", (double)serial_time / (double)parallel_time);
+	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 	
 	return 0;
 }

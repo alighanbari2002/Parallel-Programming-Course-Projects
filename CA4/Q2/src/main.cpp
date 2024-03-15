@@ -41,12 +41,12 @@ void generate_random_array(double*& array, const size_t& size)
 	}
 }
 
-ll find_average_and_std_serial(double*& array, const size_t& size)
+ll find_avg_and_std_serial(double*& array, const size_t& size)
 {
 	double sum = 0, sq_sum = 0, average, standard_deviation;
 
 	// Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
 	for (size_t i = 0; i < size; ++i)
     {
@@ -55,27 +55,27 @@ ll find_average_and_std_serial(double*& array, const size_t& size)
     }
 
 	// Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4lf\n", average);
 	printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
 
-void* average_and_std_thread(void* arg)
+void* calculate_sum_and_square(void* arg)
 {
     thread_data_t* data = (thread_data_t*)arg;
 
@@ -94,11 +94,12 @@ void* average_and_std_thread(void* arg)
     pthread_exit(NULL);
 }
 
-ll find_average_and_std_parallel(double*& array, const size_t& size)
+ll find_avg_and_std_parallel(double*& array, const size_t& size)
 {
     double sum = 0, sq_sum = 0, average, standard_deviation;
 
-    int num_threads = sysconf(_SC_NPROCESSORS_ONLN) - 1;
+    int num_procs = sysconf(_SC_NPROCESSORS_ONLN);
+    int num_threads = num_procs - 1;
 
     pthread_t threads[num_threads];
     thread_data_t thread_data_array[num_threads];
@@ -108,7 +109,7 @@ ll find_average_and_std_parallel(double*& array, const size_t& size)
 	int i;
 
 	// Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     // Assign the arguments for each thread
     for (i = 0; i < num_threads; ++i)
@@ -118,7 +119,7 @@ ll find_average_and_std_parallel(double*& array, const size_t& size)
         thread_data_array[i].start = i * chunk_size;
         thread_data_array[i].end = (i == num_threads - 1) ? size : (i + 1) * chunk_size;
 
-        int rc = pthread_create(&threads[i], NULL, average_and_std_thread, &thread_data_array[i]);
+        int rc = pthread_create(&threads[i], NULL, calculate_sum_and_square, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -141,22 +142,22 @@ ll find_average_and_std_parallel(double*& array, const size_t& size)
     }
 
 	// Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
     average = sum / size;
     standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
     printf("\nParallel Method:\n");
     printf("\t- Average: %.4lf\n", average);
     printf("\t- Standard Deviation: %.4lf\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -175,8 +176,8 @@ int main()
 	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	ll serial_time = find_average_and_std_serial(array, ARRAY_SIZE);
-	ll parallel_time = find_average_and_std_parallel(array, ARRAY_SIZE);
+	ll serial_time = find_avg_and_std_serial(array, ARRAY_SIZE);
+	ll parallel_time = find_avg_and_std_parallel(array, ARRAY_SIZE);
 
 	delete array;
 

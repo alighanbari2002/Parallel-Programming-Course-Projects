@@ -26,7 +26,7 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     Mat out_img_serial(img1.rows, img1.cols, CV_8U);
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
@@ -41,19 +41,19 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     }
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Serial Method: %s\n", ss.str().c_str());
+    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -64,11 +64,11 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 
     int row, col;
 
-	int num_threads = omp_get_max_threads() - 1;
-	omp_set_num_threads(num_threads);
+	int num_threads = omp_get_max_threads();
+	omp_set_num_threads(num_threads - 1);
 
 	// Start the timer
-	double start = omp_get_wtime();
+	double start_time = omp_get_wtime();
 
     #pragma omp parallel for simd simdlen(16) default(shared) private(row, col) schedule(auto)
         for(row = 0; row < out_img_parallel.rows; ++row)
@@ -84,19 +84,19 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
         }
 
 	// Stop the timer
-	double finish = omp_get_wtime();
+	double finish_time = omp_get_wtime();
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	ll execution_time = (finish - start) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * pow(10, 9);
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Parallel Method: %s\n", ss.str().c_str());
+    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }

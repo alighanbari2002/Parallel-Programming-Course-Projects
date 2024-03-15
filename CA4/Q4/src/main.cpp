@@ -39,12 +39,12 @@ typedef struct {
 
 const double ALPHA = 0.25;
 
-ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
+ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_serial = front.clone();
 
     // Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
@@ -63,24 +63,24 @@ ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
     }
 
     // Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
     // Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Serial Method: %s\n", ss.str().c_str());
+    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
 
-void* blend_thread(void* arg)
+void* blend_images_with_alpha(void* arg)
 {
     thread_data_t* data = (thread_data_t*) arg;
 
@@ -103,7 +103,7 @@ void* blend_thread(void* arg)
     pthread_exit(NULL);
 }
 
-ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
+ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_parallel = front.clone();
 
@@ -123,7 +123,7 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
     int i;
 
 	// Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     // Assign the arguments for each thread
     for(i = 0; i < num_threads; ++i)
@@ -141,7 +141,7 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
             thread_data_array[i].end_row += remainder;
         }
 
-        int rc = pthread_create(&threads[i], &attr, blend_thread, &thread_data_array[i]);
+        int rc = pthread_create(&threads[i], &attr, blend_images_with_alpha, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -162,19 +162,19 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
     }
 
 	// Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-    printf("\t- Parallel Method: %s\n", ss.str().c_str());
+    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -198,8 +198,8 @@ int main()
               "Illegal frames: logo_image is larger than front_image");
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = blend_images_serial(front_image, logo_image, ALPHA);
-	ll parallel_time = blend_images_parallel(front_image, logo_image, ALPHA);
+    ll serial_time = image_blending_serial(front_image, logo_image, ALPHA);
+	ll parallel_time = image_blending_parallel(front_image, logo_image, ALPHA);
 
 	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 

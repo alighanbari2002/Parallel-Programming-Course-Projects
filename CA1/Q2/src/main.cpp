@@ -19,13 +19,13 @@ typedef union {
 
 	u_int64_t			m128_u64[4];
 	int64_t				m128_i64[4];
-} intVec;
+} int_vec;
 
 typedef union {
 	__m128 				f128;
 
 	float				f32[4];
-} floatVec;
+} float_vec;
 
 typedef enum {
     u8,
@@ -36,11 +36,11 @@ typedef enum {
     i32,
     u64,
     i64
-} DataType;
+} data_t;
 
 void print_u8(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 15; i > 0; --i)
@@ -52,7 +52,7 @@ void print_u8(__m128i a)
 
 void print_i8(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 15; i > 0; --i)
@@ -64,7 +64,7 @@ void print_i8(__m128i a)
 
 void print_u16(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 7; i > 0; --i)
@@ -76,7 +76,7 @@ void print_u16(__m128i a)
 
 void print_i16(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 7; i > 0; --i)
@@ -88,7 +88,7 @@ void print_i16(__m128i a)
 
 void print_u32(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 3; i > 0; --i)
@@ -100,7 +100,7 @@ void print_u32(__m128i a)
 
 void print_i32(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 3; i > 0; --i)
@@ -112,7 +112,7 @@ void print_i32(__m128i a)
 
 void print_u64(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 1; i > 0; --i)
@@ -124,7 +124,7 @@ void print_u64(__m128i a)
 
 void print_i64(__m128i a)
 {
-	intVec tmp;
+	int_vec tmp;
 	tmp.int128 = a;
 	printf ("[");
 	for (size_t i = 1; i > 0; --i)
@@ -134,7 +134,7 @@ void print_i64(__m128i a)
 	printf ("%lX]\n", tmp.m128_i64[0]);
 }
 
-void print_int_vector(__m128i a, DataType type)
+void print_int_vector(__m128i a, data_t type)
 {
     switch (type)
 	{
@@ -178,7 +178,7 @@ void print_int_vector(__m128i a, DataType type)
 
 void print_spfp_vector(__m128 a)
 {
-	floatVec tmp;
+	float_vec tmp;
 	tmp.f128 = a;
 	printf ("[");
 	for (size_t i = 3; i > 0; i--)
@@ -200,9 +200,9 @@ int main()
 	print_group_info();
 
     __m128i a;
-	unsigned char intArray [16] = {	0X00, 0X11, 0X22, 0X33, 0X44, 0X55, 0X66, 0X77,
+	unsigned char int_array [16] = {	0X00, 0X11, 0X22, 0X33, 0X44, 0X55, 0X66, 0X77,
 					    			0X88, 0X99, 0XAA, 0XBB, 0XCC, 0XDD, 0XEE, 0XFF };
-	a = _mm_load_si128((const __m128i*)intArray);
+	a = _mm_load_si128((const __m128i*)int_array);
 
     printf("\nTesting \"print_int_vector\" Function:\n");
 	print_int_vector(a, u8);
@@ -215,8 +215,8 @@ int main()
 	print_int_vector(a, i64);
 
 	__m128 b;
-	float floatArray[4] = {-6763.4, -3.1f, 1231231232.5, 7.0f};
-	b = _mm_load_ps(floatArray);
+	float float_array[4] = {-6763.4, -3.1f, 1231231232.5, 7.0f};
+	b = _mm_load_ps(float_array);
 
     printf("\nTesting \"print_spfp_vector\" Function:\n");
     printf("\t- content of the 128-bit register: ");

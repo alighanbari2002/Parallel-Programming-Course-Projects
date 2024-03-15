@@ -34,7 +34,7 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     Mat out_img_serial(img1.rows, img1.cols, CV_8U);
 
     // Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
@@ -49,19 +49,19 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     }
 
     // Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
     // Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Serial Method: %s\n", ss.str().c_str());
+    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }
@@ -73,7 +73,7 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
     __m128i img1_part, img2_part, diff_img12, diff_img21, diff;
 
     // Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     for (int row = 0; row < out_img_parallel.rows; ++row)
     {
@@ -93,19 +93,19 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
     }
 
     // Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
     // Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
-    printf("\t- Parallel Method: %s\n", ss.str().c_str());
+    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
 
     return execution_time;
 }

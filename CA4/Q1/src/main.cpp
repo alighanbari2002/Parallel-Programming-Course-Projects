@@ -40,13 +40,13 @@ void generate_random_array(double*& array, const size_t& size)
     }
 }
 
-ll find_min_serial(double*& array, const size_t& size)
+ll min_search_serial(double*& array, const size_t& size)
 {
 	double min_element = array[0];
 	int min_index = 0;
 
 	// Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
 	for (size_t i = 0; i < size; ++i)
     {
@@ -58,24 +58,24 @@ ll find_min_serial(double*& array, const size_t& size)
 	}
 
 	// Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
 
-void* min_thread(void* arg)
+void* find_local_min(void* arg)
 {
     thread_data_t* data = (thread_data_t*) arg;
 
@@ -97,12 +97,13 @@ void* min_thread(void* arg)
     pthread_exit(NULL);
 }
 
-ll find_min_parallel(double*& array, const size_t& size)
+ll min_search_parallel(double*& array, const size_t& size)
 {
     double min_element = array[0];
 	int min_index = 0;
 
-    int num_threads = sysconf(_SC_NPROCESSORS_ONLN) - 1;
+    int num_procs = sysconf(_SC_NPROCESSORS_ONLN);
+    int num_threads = num_procs - 1;
 
     pthread_t threads[num_threads];
     thread_data_t thread_data_array[num_threads];
@@ -112,7 +113,7 @@ ll find_min_parallel(double*& array, const size_t& size)
 	int i;
  
 	// Start the timer
-	auto start = high_resolution_clock::now();
+	auto start_time = high_resolution_clock::now();
 
     // Assign the arguments for each thread
     for (i = 0; i < num_threads; ++i)
@@ -122,7 +123,7 @@ ll find_min_parallel(double*& array, const size_t& size)
         thread_data_array[i].start = i * chunk_size;
         thread_data_array[i].end = (i == num_threads - 1) ? (size - 1) : (thread_data_array[i].start + chunk_size - 1);
 
-        int rc = pthread_create(&threads[i], NULL, min_thread, &thread_data_array[i]);
+        int rc = pthread_create(&threads[i], NULL, find_local_min, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -148,19 +149,19 @@ ll find_min_parallel(double*& array, const size_t& size)
     }
 
 	// Stop the timer
-	auto finish = high_resolution_clock::now();
+	auto finish_time = high_resolution_clock::now();
 
-	ll execution_time = duration_cast<nanoseconds>(finish - start).count();
+	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
-	stringstream ss;
-	ss.imbue(locale(""));
-	ss << execution_time;
+	stringstream output_formatter;
+	output_formatter.imbue(locale(""));
+	output_formatter << execution_time;
 
 	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element);
 	printf("\t- Min Index: %d\n", min_index);
-	printf("\t- Run Time (ns): %s\n", ss.str().c_str());
+	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
 }
@@ -179,8 +180,8 @@ int main()
 	double *array = new double [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
-	ll serial_time = find_min_serial(array, ARRAY_SIZE);
-	ll parallel_time = find_min_parallel(array, ARRAY_SIZE);
+	ll serial_time = min_search_serial(array, ARRAY_SIZE);
+	ll parallel_time = min_search_parallel(array, ARRAY_SIZE);
 
 	delete array;
 
