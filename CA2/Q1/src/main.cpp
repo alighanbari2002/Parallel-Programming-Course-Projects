@@ -219,13 +219,13 @@ int main()
 {
 	print_group_info();
 
-	float *array = new float [ARRAY_SIZE];
+	float* array = new float [ARRAY_SIZE];
 	generate_random_array(array, ARRAY_SIZE);
 
 	ll serial_time = min_search_serial(array, ARRAY_SIZE);
 	ll parallel_time = min_search_parallel(array, ARRAY_SIZE);
 
-	delete array;
+	delete[] array;
 
 	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
 
