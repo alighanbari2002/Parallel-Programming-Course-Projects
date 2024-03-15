@@ -8,6 +8,7 @@
 #include <cassert>
 #include <sstream>
 #include <chrono>
+#include <string.h>
 
 using cv::Mat;
 using cv::imwrite;
@@ -43,11 +44,13 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
+        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+
         for(int col = 0; col < out_img_serial.cols; ++col)
         {
-            out_img_serial.at<uchar>(row, col) = abs(
-                img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
-                );
+            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
         }
     }
 
@@ -69,17 +72,19 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     return execution_time;
 }
 
-void* diff(void* arg)
+void* diff_thread(void* arg)
 {
     thread_data_t* data = (thread_data_t*) arg;
 
     for(int row = data->start_row; row < data->end_row; ++row)
     {
+        const uchar* img1_row = data->img1->ptr<uchar>(row);
+        const uchar* img2_row = data->img2->ptr<uchar>(row);
+        uchar* out_img_row = data->out_img->ptr<uchar>(row);
+
         for(int col = 0; col < data->out_img->cols; ++col)
         {
-            data->out_img->at<uchar>(row, col) = abs(
-                data->img1->at<uchar>(row, col) - data->img2->at<uchar>(row, col)
-                );
+            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
         }
     }
 
@@ -90,8 +95,8 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 {
     Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
 
-    int num_procs = sysconf(_SC_NPROCESSORS_ONLN) - 1;
-    int num_threads = min(num_procs, out_img_parallel.rows);
+    int num_procs = sysconf(_SC_NPROCESSORS_ONLN);
+    int num_threads = min(8, num_procs - 1);
 
     pthread_t threads[num_threads];
     thread_data_t thread_data_array[num_threads];
@@ -116,7 +121,7 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
         thread_data_array[i].start_row = i * rows_per_thread;
         thread_data_array[i].end_row = (i == num_threads - 1) ? img1.rows : (i + 1) * rows_per_thread;
 
-        int rc = pthread_create(&threads[i], &attr, diff, &thread_data_array[i]);
+        int rc = pthread_create(&threads[i], &attr, diff_thread, &thread_data_array[i]);
         if (rc)
         {
             printf("ERROR: return code from pthread_create() is %d\n", rc);
@@ -150,7 +155,7 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
     out_img_parallel.release();
 
     printf("\t- Parallel Method: %s\n", ss.str().c_str());
-    
+
     return execution_time;
 }
 
@@ -179,6 +184,6 @@ int main()
 
     image_01.release();
     image_02.release();
-    
+
     return 0;
 }

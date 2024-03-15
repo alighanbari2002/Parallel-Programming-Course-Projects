@@ -27,25 +27,23 @@ ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_serial = front.clone();
 
+    int row, col;
+
 	// Start the timer
 	double start = omp_get_wtime();
 
-    for(int row = 0; row < out_img_serial.rows; ++row)
+    for(row = 0; row < out_img_serial.rows; ++row)
     {
-        for(int col = 0; col < out_img_serial.cols; ++col)
-        {            
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
+        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+
+        for(col = 0; col < out_img_serial.cols; ++col)
+        {
             if(row < logo.rows && col < logo.cols)
             {
-                int new_pixel = front.at<uchar>(row, col) + alpha * logo.at<uchar>(row, col);
-
-                if(new_pixel > 255)
-                {
-                    out_img_serial.at<uchar>(row, col) = 255;
-                }
-                else
-                {
-                    out_img_serial.at<uchar>(row, col) = new_pixel;
-                }
+                int new_pixel = front_row[col] + alpha * logo_row[col];
+                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
             }
         }
     }
@@ -72,29 +70,27 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_parallel = front.clone();
 
+    int row, col;
+
 	int num_threads = omp_get_max_threads() - 1;
 	omp_set_num_threads(num_threads);
 
 	// Start the timer
 	double start = omp_get_wtime();
 
-    #pragma omp parallel for simd simdlen(16) default(shared) private(row, col) schedule(auto)
-        for(int row = 0; row < out_img_parallel.rows; ++row)
+    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
+        for(row = 0; row < out_img_parallel.rows; ++row)
         {
-            for(int col = 0; col < out_img_parallel.cols; ++col)
-            {            
+            const uchar* front_row = front.ptr<uchar>(row);
+            const uchar* logo_row = logo.ptr<uchar>(row);
+            uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+
+            for(col = 0; col < out_img_parallel.cols; ++col)
+            {
                 if(row < logo.rows && col < logo.cols)
                 {
-                    int new_pixel = front.at<uchar>(row, col) + alpha * logo.at<uchar>(row, col);
-
-                    if(new_pixel > 255)
-                    {
-                        out_img_parallel.at<uchar>(row, col) = 255;
-                    }
-                    else
-                    {
-                        out_img_parallel.at<uchar>(row, col) = new_pixel;
-                    }
+                    int new_pixel = front_row[col] + alpha * logo_row[col];
+                    out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
                 }
             }
         }

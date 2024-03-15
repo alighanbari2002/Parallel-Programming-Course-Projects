@@ -30,11 +30,13 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
+        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+        
         for(int col = 0; col < out_img_serial.cols; ++col)
         {
-            out_img_serial.at<uchar>(row, col) = abs(
-                img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
-                );
+            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
         }
     }
 
@@ -60,20 +62,24 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 {
     Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
 
+    int row, col;
+
 	int num_threads = omp_get_max_threads() - 1;
 	omp_set_num_threads(num_threads);
 
 	// Start the timer
 	double start = omp_get_wtime();
 
-    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
-        for(int row = 0; row < out_img_parallel.rows; ++row)
+    #pragma omp parallel for simd simdlen(16) default(shared) private(row, col) schedule(auto)
+        for(row = 0; row < out_img_parallel.rows; ++row)
         {
-            for(int col = 0; col < out_img_parallel.cols; ++col)
+            const uchar* img1_row = img1.ptr<uchar>(row);
+            const uchar* img2_row = img2.ptr<uchar>(row);
+            uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+            
+            for(col = 0; col < out_img_parallel.cols; ++col)
             {
-                out_img_parallel.at<uchar>(row, col) = abs(
-                    img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
-                    );
+                out_img_row[col] = abs(img1_row[col] - img2_row[col]);
             }
         }
 

@@ -38,11 +38,13 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
+        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+        
         for(int col = 0; col < out_img_serial.cols; ++col)
         {
-            out_img_serial.at<uchar>(row, col) = abs(
-                img1.at<uchar>(row, col) - img2.at<uchar>(row, col)
-                );
+            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
         }
     }
 
@@ -75,14 +77,18 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 
     for (int row = 0; row < out_img_parallel.rows; ++row)
     {
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
+        uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+
         for (int col = 0; col < out_img_parallel.cols; col += M128_GRAY_INTERVAL)
         {
-            img1_part = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&img1.at<uchar>(row, col)));
-            img2_part = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&img2.at<uchar>(row, col)));
+            img1_part = _mm_loadu_si128(reinterpret_cast<const __m128i*>(img1_row + col));
+            img2_part = _mm_loadu_si128(reinterpret_cast<const __m128i*>(img2_row + col));
             diff_img12 = _mm_subs_epu8(img1_part, img2_part);
             diff_img21 = _mm_subs_epu8(img2_part, img1_part);
             diff = _mm_or_si128(diff_img12, diff_img21); // Safe because one is zero see http://0x80.pl/notesen/2018-03-11-sse-abs-unsigned.html
-            _mm_storeu_si128(reinterpret_cast<__m128i*>(&out_img_parallel.at<uchar>(row, col)), diff);
+            _mm_storeu_si128(reinterpret_cast<__m128i*>(out_img_row + col), diff);
         }
     }
 

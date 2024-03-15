@@ -39,20 +39,16 @@ ll blend_images_serial(const Mat& front, const Mat& logo, double alpha)
 
     for(int row = 0; row < out_img_serial.rows; ++row)
     {
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
+        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+
         for(int col = 0; col < out_img_serial.cols; ++col)
-        {            
+        {
             if(row < logo.rows && col < logo.cols)
             {
-                int new_pixel = front.at<uchar>(row, col) + alpha * logo.at<uchar>(row, col);
-
-                if(new_pixel > 255)
-                {
-                    out_img_serial.at<uchar>(row, col) = 255;
-                }
-                else
-                {
-                    out_img_serial.at<uchar>(row, col) = new_pixel;
-                }
+                int new_pixel = front_row[col] + alpha * logo_row[col];
+                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
             }
         }
     }
@@ -79,35 +75,39 @@ ll blend_images_parallel(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_parallel = front.clone();
     
-    __m128i_u logo_part, front_part;
-    __m128i_u* output_part;
+    __m128i_u logo_chunk, front_chunk;
+    __m128i_u* output_chunk;
+
+    // Divide by 4 
+    // 00 --> xxxx xxxx xxxx xx --> xx
+    // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
+    const __m128i_u mask_divide_by_4 = _mm_set1_epi16(0xFF3F);
+
+    const int logo_width = logo.cols - M128_GRAY_INTERVAL;
 
     // Start the timer
 	auto start = high_resolution_clock::now();
 
     for(int row = 0; row < out_img_parallel.rows; ++row)
     {
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
+        uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+
         for(int col = 0; col < out_img_parallel.cols; col += M128_GRAY_INTERVAL)
         {
-            logo_part  = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(&logo.at<uchar>(row, col)));
-            front_part = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(&front.at<uchar>(row, col)));
-            output_part = reinterpret_cast<__m128i_u*>(&out_img_parallel.at<uchar>(row, col));
+            front_chunk = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(front_row + col));
+            logo_chunk  = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(logo_row + col));
+            output_chunk = reinterpret_cast<__m128i_u*>(out_img_row + col);
 
-            if(row < logo.rows && col < logo.cols - M128_GRAY_INTERVAL)
+            if(row < logo.rows && col < logo_width)
             {
-                // Divide by 4 
-                // 00 --> xxxx xxxx xxxx xx --> xx
-                // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
+                // Apply alpha blending to logo chunk
+                logo_chunk = _mm_srli_epi16(logo_chunk, 2);
+                logo_chunk = _mm_and_si128(logo_chunk, mask_divide_by_4);
 
-                logo_part = _mm_srli_epi16(logo_part, 2);
-                logo_part = _mm_and_si128(logo_part, _mm_set1_epi16(0xFF3F));
-
-                // Multiply front by 3 achieving 0.75
-                // x <-- xxx xxxx xxxx xxxx <--0
-                // xxxx xxxx xxxx xxx0
-                // xxxx xxx0 xxxx xxx0
-
-                _mm_storeu_si128(output_part, _mm_adds_epu8(logo_part, front_part));
+                // Store blended result
+                _mm_storeu_si128(output_chunk, _mm_adds_epu8(logo_chunk, front_chunk));
             }
         }
     }
