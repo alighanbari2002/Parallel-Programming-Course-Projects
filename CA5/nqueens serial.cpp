@@ -1,8 +1,6 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include <sstream>
-#include <omp.h>
+#include <chrono>
 
 using ll = long long;
 
@@ -54,16 +52,16 @@ int main()
     int* queens = new int[CHESS_BOARD_SIZE];
 
     // Start the timer
-    auto start_time = omp_get_wtime();
+	auto start_time = std::chrono::high_resolution_clock::now();
 
     solve_nqueens(queens);
 
     // Stop the timer
-	double finish_time = omp_get_wtime();
+    auto finish_time = std::chrono::high_resolution_clock::now();
 
     delete[] queens;
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+    ll execution_time = std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
 
 	// Use a string stream to format the output
 	std::stringstream output_formatter;
