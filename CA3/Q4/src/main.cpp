@@ -26,7 +26,7 @@ const int M128_GRAY_INTERVAL = 16;
 ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_serial = front.clone();
-
+    uchar* out_img_row;
     int row, col;
 
 	// Start the timer
@@ -36,7 +36,7 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
     {
         const uchar* front_row = front.ptr<uchar>(row);
         const uchar* logo_row = logo.ptr<uchar>(row);
-        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+        out_img_row = out_img_serial.ptr<uchar>(row);
 
         for(col = 0; col < logo.cols; ++col)
         {
@@ -51,7 +51,7 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
@@ -66,7 +66,7 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
 ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
 {
     Mat out_img_parallel = front.clone();
-
+    uchar* out_img_row;
     int row, col;
 
 	int num_threads = omp_get_max_threads();
@@ -75,12 +75,12 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-    #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
+    #pragma omp parallel for simd default(shared) private(out_img_row, row, col) schedule(static)
         for(row = 0; row < logo.rows; ++row)
         {
             const uchar* front_row = front.ptr<uchar>(row);
             const uchar* logo_row = logo.ptr<uchar>(row);
-            uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+            out_img_row = out_img_parallel.ptr<uchar>(row);
 
             for(col = 0; col < logo.cols; ++col)
             {
@@ -95,7 +95,7 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;

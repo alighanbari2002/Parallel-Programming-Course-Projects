@@ -5,12 +5,18 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <float.h>
 #include <omp.h>
 
 using std::default_random_engine; 
 using std::uniform_real_distribution;
 using std::stringstream;
 using std::locale;
+
+typedef struct {
+	float value;
+	int index;
+} array_element_t;
 
 typedef long long ll;
 
@@ -29,26 +35,25 @@ void generate_random_array(float*& array, const size_t& size)
 
 ll min_search_serial(float*& array, const size_t& size)
 {
-	float min_element = array[0];
-	int min_index = 0;
+	array_element_t min_element = {array[0], 0};
 	size_t i;
 
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-	for (i = 0; i < size; ++i)
+	for (i = 1; i < size; ++i)
 	{
-		if (array[i] < min_element)
+		if (array[i] < min_element.value)
 		{
-			min_element = array[i];
-			min_index = i;
+			min_element.value = array[i];
+			min_element.index = i;
 		}
 	}
 
 	// Stop the timer
 	double finish_time = omp_get_wtime();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
@@ -56,8 +61,8 @@ ll min_search_serial(float*& array, const size_t& size)
 	output_formatter << execution_time;
 
 	printf("\nSerial Method:\n");
-	printf("\t- Min Value: %f\n", min_element);
-	printf("\t- Min Index: %d\n", min_index);
+	printf("\t- Min Value: %f\n", min_element.value);
+	printf("\t- Min Index: %d\n", min_element.index);
 	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;
@@ -65,9 +70,12 @@ ll min_search_serial(float*& array, const size_t& size)
 
 ll min_search_parallel(float*& array, const size_t& size)
 {
-	float min_element = array[0], local_min_element = array[0];
-	int min_index = 0, local_min_index = 0;
-	size_t i = 0;
+	#pragma omp declare reduction(minimum : array_element_t : \
+			omp_out = omp_in.value < omp_out.value ? omp_in : omp_out) \
+			initializer(omp_priv = {FLT_MAX, -1})
+
+	array_element_t min_element = {array[0], 0};
+	size_t i;
 
 	int num_threads = omp_get_max_threads();
 	omp_set_num_threads(num_threads - 1);
@@ -75,31 +83,21 @@ ll min_search_parallel(float*& array, const size_t& size)
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-	#pragma omp parallel default(shared) firstprivate(local_min_element, local_min_index, i)
-	{
-		#pragma omp for simd aligned(array: 64) schedule(auto) nowait
-			for (i = 0; i < size; i++)
-			{
-				if (array[i] < local_min_element)
-				{
-					local_min_element = array[i];
-					local_min_index = i;
-				}
-			}
-
-		if (local_min_element < min_element)
+	#pragma omp parallel for simd default(shared) private(i) \
+			reduction(minimum:min_element) schedule(static)
+		for (i = 1; i < size; ++i)
 		{
-			#pragma omp atomic write
-				min_element = local_min_element;
-			#pragma omp atomic write
-				min_index = local_min_index;
+			if (array[i] < min_element.value)
+			{
+				min_element.value = array[i];
+				min_element.index = i;
+			}
 		}
-	}
 
 	// Stop the timer
 	double finish_time = omp_get_wtime();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
@@ -107,8 +105,8 @@ ll min_search_parallel(float*& array, const size_t& size)
 	output_formatter << execution_time;
 
 	printf("\nParallel Method:\n");
-	printf("\t- Min Value: %f\n", min_element);
-	printf("\t- Min Index: %d\n", min_index);
+	printf("\t- Min Value: %f\n", min_element.value);
+	printf("\t- Min Index: %d\n", min_element.index);
 	printf("\t- Run Time (ns): %s\n", output_formatter.str().c_str());
 
 	return execution_time;

@@ -24,17 +24,19 @@ const int M128_GRAY_INTERVAL = 16;
 ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 {
     Mat out_img_serial(img1.rows, img1.cols, CV_8U);
+    uchar* out_img_row;
+    int row, col;
 
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-    for(int row = 0; row < out_img_serial.rows; ++row)
+    for(row = 0; row < out_img_serial.rows; ++row)
     {
         const uchar* img1_row = img1.ptr<uchar>(row);
         const uchar* img2_row = img2.ptr<uchar>(row);
-        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+        out_img_row = out_img_serial.ptr<uchar>(row);
         
-        for(int col = 0; col < out_img_serial.cols; ++col)
+        for(col = 0; col < out_img_serial.cols; ++col)
         {
             out_img_row[col] = abs(img1_row[col] - img2_row[col]);
         }
@@ -46,7 +48,7 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
     imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
     out_img_serial.release();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
@@ -61,7 +63,7 @@ ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
 ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 {
     Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
-
+    uchar* out_img_row;
     int row, col;
 
 	int num_threads = omp_get_max_threads();
@@ -70,12 +72,12 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-    #pragma omp parallel for simd simdlen(16) default(shared) private(row, col) schedule(auto)
+    #pragma omp parallel for simd default(shared) private(out_img_row, row, col) schedule(static)
         for(row = 0; row < out_img_parallel.rows; ++row)
         {
             const uchar* img1_row = img1.ptr<uchar>(row);
             const uchar* img2_row = img2.ptr<uchar>(row);
-            uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+            out_img_row = out_img_parallel.ptr<uchar>(row);
             
             for(col = 0; col < out_img_parallel.cols; ++col)
             {
@@ -89,7 +91,7 @@ ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
     imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
     out_img_parallel.release();
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;

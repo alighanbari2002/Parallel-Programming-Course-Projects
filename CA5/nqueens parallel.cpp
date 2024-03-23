@@ -43,15 +43,16 @@ int try_place_queen(int*& queens, int row, int column)
 
 void solve_nqueens(int*& queens)
 {
+    int* local_queens;
     int row;
 
     int num_threads = omp_get_max_threads();
     omp_set_num_threads(num_threads - 1);
 
-    #pragma omp parallel for default(shared) private(row) schedule(auto)
+    #pragma omp parallel for simd default(shared) private(local_queens, row) schedule(static)
         for(row = 0; row < CHESS_BOARD_SIZE; ++row)
         {
-            int* local_queens = new int[CHESS_BOARD_SIZE];
+            local_queens = new int[CHESS_BOARD_SIZE];
             memcpy(local_queens, queens, CHESS_BOARD_SIZE * sizeof(int));
 
             try_place_queen(local_queens, 0, row);
@@ -74,7 +75,7 @@ int main()
 
     delete[] queens;
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	std::stringstream output_formatter;

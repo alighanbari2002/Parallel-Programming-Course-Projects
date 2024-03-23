@@ -47,7 +47,7 @@ ll find_avg_and_std_serial(double*& array, const size_t& size)
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
@@ -74,7 +74,7 @@ ll find_avg_and_std_parallel(double*& array, const size_t& size)
 	double start_time = omp_get_wtime();
 
 	#pragma omp parallel for simd default(shared) private(i) \
-			reduction(+:sum,sq_sum) schedule(auto)
+			reduction(+:sum,sq_sum) schedule(static)
 		for (i = 0; i < size; ++i)
 		{
 			sum += array[i];
@@ -87,7 +87,7 @@ ll find_avg_and_std_parallel(double*& array, const size_t& size)
 	average = sum / size;
 	standard_deviation = sqrt(sq_sum / size - average * average);
 
-	ll execution_time = (finish_time - start_time) * pow(10, 9);
+	ll execution_time = (finish_time - start_time) * 1e9;
 
 	// Use a string stream to format the output
 	stringstream output_formatter;
