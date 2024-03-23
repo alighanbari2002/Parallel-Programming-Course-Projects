@@ -37,19 +37,16 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
     // Start the timer
 	auto start_time = high_resolution_clock::now();
 
-    for(int row = 0; row < out_img_serial.rows; ++row)
+    for(int row = 0; row < logo.rows; ++row)
     {
         const uchar* front_row = front.ptr<uchar>(row);
         const uchar* logo_row = logo.ptr<uchar>(row);
         uchar* out_img_row = out_img_serial.ptr<uchar>(row);
 
-        for(int col = 0; col < out_img_serial.cols; ++col)
+        for(int col = 0; col < logo.cols; ++col)
         {
-            if(row < logo.rows && col < logo.cols)
-            {
-                int new_pixel = front_row[col] + alpha * logo_row[col];
-                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
-            }
+            int new_pixel = front_row[col] + alpha * logo_row[col];
+            out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
 
@@ -88,27 +85,24 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
     // Start the timer
 	auto start_time = high_resolution_clock::now();
 
-    for(int row = 0; row < out_img_parallel.rows; ++row)
+    for(int row = 0; row < logo.rows; ++row)
     {
         const uchar* front_row = front.ptr<uchar>(row);
         const uchar* logo_row = logo.ptr<uchar>(row);
         uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
 
-        for(int col = 0; col < out_img_parallel.cols; col += M128_GRAY_INTERVAL)
+        for(int col = 0; col < logo_width; col += M128_GRAY_INTERVAL)
         {
             front_chunk = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(front_row + col));
             logo_chunk  = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(logo_row + col));
             output_chunk = reinterpret_cast<__m128i_u*>(out_img_row + col);
 
-            if(row < logo.rows && col < logo_width)
-            {
-                // Apply alpha blending to logo chunk
-                logo_chunk = _mm_srli_epi16(logo_chunk, 2);
-                logo_chunk = _mm_and_si128(logo_chunk, mask_divide_by_4);
+            // Apply alpha blending to logo chunk
+            logo_chunk = _mm_srli_epi16(logo_chunk, 2);
+            logo_chunk = _mm_and_si128(logo_chunk, mask_divide_by_4);
 
-                // Store blended result
-                _mm_storeu_si128(output_chunk, _mm_adds_epu8(logo_chunk, front_chunk));
-            }
+            // Store blended result
+            _mm_storeu_si128(output_chunk, _mm_adds_epu8(logo_chunk, front_chunk));
         }
     }
 

@@ -46,19 +46,16 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
     // Start the timer
 	auto start_time = high_resolution_clock::now();
 
-    for(int row = 0; row < out_img_serial.rows; ++row)
+    for(int row = 0; row < logo.rows; ++row)
     {
         const uchar* front_row = front.ptr<uchar>(row);
         const uchar* logo_row = logo.ptr<uchar>(row);
         uchar* out_img_row = out_img_serial.ptr<uchar>(row);
 
-        for(int col = 0; col < out_img_serial.cols; ++col)
+        for(int col = 0; col < logo.cols; ++col)
         {
-            if(row < logo.rows && col < logo.cols)
-            {
-                int new_pixel = front_row[col] + alpha * logo_row[col];
-                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
-            }
+            int new_pixel = front_row[col] + alpha * logo_row[col];
+            out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
 
@@ -90,13 +87,10 @@ void* blend_images_with_alpha(void* arg)
         const uchar* logo_row = data->logo->ptr<uchar>(row);
         uchar* out_img_row = data->out_img->ptr<uchar>(row);
 
-        for(int col = 0; col < data->out_img->cols; ++col)
+        for(int col = 0; col < data->logo->cols; ++col)
         {            
-            if(row < data->logo->rows && col < data->logo->cols)
-            {
-                int new_pixel = front_row[col] + data->alpha * logo_row[col];
-                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
-            }
+            int new_pixel = front_row[col] + data->alpha * logo_row[col];
+            out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
 
@@ -108,7 +102,7 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
     Mat out_img_parallel = front.clone();
 
     int num_procs = sysconf(_SC_NPROCESSORS_ONLN);
-    int num_threads = min(12, num_procs - 1);
+    int num_threads = min(2, num_procs - 1);
 
     pthread_t threads[num_threads];
     thread_data_t thread_data_array[num_threads];
@@ -117,8 +111,8 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    int rows_per_thread = out_img_parallel.rows / num_threads;
-    int remainder = out_img_parallel.rows % num_threads;
+    int rows_per_thread = logo.rows / num_threads;
+    int remainder = logo.rows % num_threads;
 
     int i;
 

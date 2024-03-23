@@ -32,19 +32,16 @@ ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
 	// Start the timer
 	double start_time = omp_get_wtime();
 
-    for(row = 0; row < out_img_serial.rows; ++row)
+    for(row = 0; row < logo.rows; ++row)
     {
         const uchar* front_row = front.ptr<uchar>(row);
         const uchar* logo_row = logo.ptr<uchar>(row);
         uchar* out_img_row = out_img_serial.ptr<uchar>(row);
 
-        for(col = 0; col < out_img_serial.cols; ++col)
+        for(col = 0; col < logo.cols; ++col)
         {
-            if(row < logo.rows && col < logo.cols)
-            {
-                int new_pixel = front_row[col] + alpha * logo_row[col];
-                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
-            }
+            int new_pixel = front_row[col] + alpha * logo_row[col];
+            out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
 
@@ -73,25 +70,22 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
     int row, col;
 
 	int num_threads = omp_get_max_threads();
-	omp_set_num_threads(num_threads - 1);
+	omp_set_num_threads(2);
 
 	// Start the timer
 	double start_time = omp_get_wtime();
 
     #pragma omp parallel for simd default(shared) private(row, col) schedule(auto)
-        for(row = 0; row < out_img_parallel.rows; ++row)
+        for(row = 0; row < logo.rows; ++row)
         {
             const uchar* front_row = front.ptr<uchar>(row);
             const uchar* logo_row = logo.ptr<uchar>(row);
             uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
 
-            for(col = 0; col < out_img_parallel.cols; ++col)
+            for(col = 0; col < logo.cols; ++col)
             {
-                if(row < logo.rows && col < logo.cols)
-                {
-                    int new_pixel = front_row[col] + alpha * logo_row[col];
-                    out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
-                }
+                int new_pixel = front_row[col] + alpha * logo_row[col];
+                out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
             }
         }
 
