@@ -1,12 +1,10 @@
 #include <iostream>
+#include <random>
+#include <sstream>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <math.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <sstream>
-#include <random>
 #include <chrono>
 
 using std::default_random_engine; 
@@ -31,13 +29,14 @@ typedef struct {
 
 void generate_random_array(double*& array, const size_t& size)
 {
-    default_random_engine generator(time(NULL));
-    uniform_real_distribution<double> distribution(0.0, pow(10, 6));
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dist(0, 1e7);
 
-    for (size_t i = 0; i < size; ++i)
-    {
-        array[i] = distribution(generator);
-    }
+	for (size_t i = 0; i < size; ++i)
+	{
+		array[i] = dist(gen);
+	}
 }
 
 ll min_search_serial(double*& array, const size_t& size)

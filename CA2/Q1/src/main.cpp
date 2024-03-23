@@ -1,12 +1,10 @@
 #include <iostream>
-#include <sstream>
 #include <random>
+#include <sstream>
 #include <chrono>
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
-#include <time.h>
-#include <math.h>
 #ifdef 		_WIN32
 #include <intrin.h>
 #else
@@ -27,12 +25,13 @@ typedef long long ll;
 
 void generate_random_array(float*& array, const size_t& size)
 {
-	default_random_engine generator(time(NULL));
-	uniform_real_distribution<float> distribution(0.0, pow(10, 6));
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<> dist(0, 1e7);
 
 	for (size_t i = 0; i < size; ++i)
 	{
-		array[i] = distribution(generator);
+		array[i] = dist(gen);
 	}
 }
 
