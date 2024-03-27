@@ -140,7 +140,7 @@ long long compute_avg_and_std_parallel(const float* const &array, const size_t& 
 	for (i = 0; i < array_size; i += UNROLL_FACTOR * VECTOR_SIZE)
 	{
 		// Load and process the first 4 elements
-		v = _mm_loadu_ps(&array[i]);
+		v = _mm_load_ps(&array[i]);
 		vlow = _mm_cvtps_pd(v);
 		vhigh = _mm_cvtps_pd(_mm_movehl_ps(v, v));
 		vsum = _mm_add_pd(vsum, _mm_hadd_pd(vlow, vhigh));
@@ -151,7 +151,7 @@ long long compute_avg_and_std_parallel(const float* const &array, const size_t& 
 		vsq_sum = _mm_add_pd(vsq_sum, _mm_hadd_pd(vlow_sq, vhigh_sq));
 
 		// Repeat the same process for the next 4 elements
-		v = _mm_loadu_ps(&array[i + VECTOR_SIZE]);
+		v = _mm_load_ps(&array[i + VECTOR_SIZE]);
 		vlow = _mm_cvtps_pd(v);
 		vhigh = _mm_cvtps_pd(_mm_movehl_ps(v, v));
 		vsum = _mm_add_pd(vsum, _mm_hadd_pd(vlow, vhigh));
@@ -162,7 +162,7 @@ long long compute_avg_and_std_parallel(const float* const &array, const size_t& 
 		vsq_sum = _mm_add_pd(vsq_sum, _mm_hadd_pd(vlow_sq, vhigh_sq));
 
 		// Repeat the same process for the next 4 elements
-		v = _mm_loadu_ps(&array[i + 2 * VECTOR_SIZE]);
+		v = _mm_load_ps(&array[i + 2 * VECTOR_SIZE]);
 		vlow = _mm_cvtps_pd(v);
 		vhigh = _mm_cvtps_pd(_mm_movehl_ps(v, v));
 		vsum = _mm_add_pd(vsum, _mm_hadd_pd(vlow, vhigh));
@@ -173,7 +173,7 @@ long long compute_avg_and_std_parallel(const float* const &array, const size_t& 
 		vsq_sum = _mm_add_pd(vsq_sum, _mm_hadd_pd(vlow_sq, vhigh_sq));
 
 		// Repeat the same process for the next 4 elements
-		v = _mm_loadu_ps(&array[i + 3 * VECTOR_SIZE]);
+		v = _mm_load_ps(&array[i + 3 * VECTOR_SIZE]);
 		vlow = _mm_cvtps_pd(v);
 		vhigh = _mm_cvtps_pd(_mm_movehl_ps(v, v));
 		vsum = _mm_add_pd(vsum, _mm_hadd_pd(vlow, vhigh));
@@ -184,8 +184,8 @@ long long compute_avg_and_std_parallel(const float* const &array, const size_t& 
 		vsq_sum = _mm_add_pd(vsq_sum, _mm_hadd_pd(vlow_sq, vhigh_sq));
 	}
 
-	_mm_storeu_pd(sum_array, vsum);
-	_mm_storeu_pd(sq_sum_array, vsq_sum);
+	_mm_store_pd(sum_array, vsum);
+	_mm_store_pd(sq_sum_array, vsq_sum);
 
 	sum += sum_array[0] + sum_array[1];
 	sq_sum += sq_sum_array[0] + sq_sum_array[1];

@@ -178,36 +178,36 @@ long long min_search_parallel(const float* const &array, const size_t& array_siz
 	for (i = 0; i < array_size; i += UNROLL_FACTOR * VECTOR_SIZE)
 	{
 		// Load and process the first 4 elements
-		new_values = _mm_loadu_ps(&array[i]);
+		new_values = _mm_load_ps(&array[i]);
 		comparison_mask = _mm_cmpgt_ps(min_elements, new_values);
 		min_elements = _mm_blendv_ps(min_elements, new_values, comparison_mask);
 		min_indices = _mm_blendv_ps(min_indices, indices, comparison_mask);
 		indices = _mm_add_ps(indices, INCREMENT);
 
 		// Repeat the same process for the next 4 elements
-		new_values = _mm_loadu_ps(&array[i + VECTOR_SIZE]);
+		new_values = _mm_load_ps(&array[i + VECTOR_SIZE]);
 		comparison_mask = _mm_cmpgt_ps(min_elements, new_values);
 		min_elements = _mm_blendv_ps(min_elements, new_values, comparison_mask);
 		min_indices = _mm_blendv_ps(min_indices, indices, comparison_mask);
 		indices = _mm_add_ps(indices, INCREMENT);
 
 		// Repeat the same process for the next 4 elements
-		new_values = _mm_loadu_ps(&array[i + 2 * VECTOR_SIZE]);
+		new_values = _mm_load_ps(&array[i + 2 * VECTOR_SIZE]);
 		comparison_mask = _mm_cmpgt_ps(min_elements, new_values);
 		min_elements = _mm_blendv_ps(min_elements, new_values, comparison_mask);
 		min_indices = _mm_blendv_ps(min_indices, indices, comparison_mask);
 		indices = _mm_add_ps(indices, INCREMENT);
 
 		// Repeat the same process for the next 4 elements
-		new_values = _mm_loadu_ps(&array[i + 3 * VECTOR_SIZE]);
+		new_values = _mm_load_ps(&array[i + 3 * VECTOR_SIZE]);
 		comparison_mask = _mm_cmpgt_ps(min_elements, new_values);
 		min_elements = _mm_blendv_ps(min_elements, new_values, comparison_mask);
 		min_indices = _mm_blendv_ps(min_indices, indices, comparison_mask);
 		indices = _mm_add_ps(indices, INCREMENT);
 	}
 
-	_mm_storeu_ps(array_values, min_elements);
-	_mm_storeu_ps(array_indexes, min_indices);
+	_mm_store_ps(array_values, min_elements);
+	_mm_store_ps(array_indexes, min_indices);
 
 	min_element = array_values[0];
 	min_index = static_cast<int>(array_indexes[0]);
