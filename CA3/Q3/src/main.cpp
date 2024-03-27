@@ -1,107 +1,14 @@
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
 #include <sstream>
-#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <omp.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
-using cv::Mat;
-using cv::imwrite;
-using cv::imread;
-using cv::IMREAD_GRAYSCALE;
-using std::stringstream;
-using std::locale;
-
-typedef long long ll;
-
-#define IMAGE_01   "../assets/image_01.png"
-#define IMAGE_02   "../assets/image_02.png"
-#define OUTPUT_DIR "../output/"
-
-const int M128_GRAY_INTERVAL = 16;
-
-ll calculate_absolute_difference_serial(const Mat& img1, const Mat& img2)
-{
-    Mat out_img_serial(img1.rows, img1.cols, CV_8U);
-    uchar* out_img_row;
-    int row, col;
-
-	// Start the timer
-	double start_time = omp_get_wtime();
-
-    for(row = 0; row < out_img_serial.rows; ++row)
-    {
-        const uchar* img1_row = img1.ptr<uchar>(row);
-        const uchar* img2_row = img2.ptr<uchar>(row);
-        out_img_row = out_img_serial.ptr<uchar>(row);
-        
-        for(col = 0; col < out_img_serial.cols; ++col)
-        {
-            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
-        }
-    }
-
-	// Stop the timer
-	double finish_time = omp_get_wtime();
-
-    imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
-    out_img_serial.release();
-
-	ll execution_time = (finish_time - start_time) * 1e9;
-
-	// Use a string stream to format the output
-	stringstream output_formatter;
-	output_formatter.imbue(locale(""));
-	output_formatter << execution_time;
-
-    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
-
-    return execution_time;
-}
-
-ll calculate_absolute_difference_parallel(const Mat& img1, const Mat& img2)
-{
-    Mat out_img_parallel(img1.rows, img1.cols, CV_8U);
-    uchar* out_img_row;
-    int row, col;
-
-	int num_threads = omp_get_max_threads();
-	omp_set_num_threads(num_threads - 1);
-
-	// Start the timer
-	double start_time = omp_get_wtime();
-
-    #pragma omp parallel for simd default(shared) private(out_img_row, row, col) schedule(static)
-        for(row = 0; row < out_img_parallel.rows; ++row)
-        {
-            const uchar* img1_row = img1.ptr<uchar>(row);
-            const uchar* img2_row = img2.ptr<uchar>(row);
-            out_img_row = out_img_parallel.ptr<uchar>(row);
-            
-            for(col = 0; col < out_img_parallel.cols; ++col)
-            {
-                out_img_row[col] = abs(img1_row[col] - img2_row[col]);
-            }
-        }
-
-	// Stop the timer
-	double finish_time = omp_get_wtime();
-
-    imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
-    out_img_parallel.release();
-
-	ll execution_time = (finish_time - start_time) * 1e9;
-
-	// Use a string stream to format the output
-	stringstream output_formatter;
-	output_formatter.imbue(locale(""));
-	output_formatter << execution_time;
-
-    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
-
-    return execution_time;
-}
+#define IMAGE_01_PATH "../assets/image_01.png"
+#define IMAGE_02_PATH "../assets/image_02.png"
+#define OUTPUT_DIR    "../output/"
 
 void print_group_info()
 {
@@ -110,24 +17,130 @@ void print_group_info()
 	printf("\t- Behrad Elmi  [810199557]\n");
 }
 
+cv::Mat load_image(const char* const &path)
+{
+    cv::Mat img = cv::imread(path, cv::IMREAD_GRAYSCALE);
+    CV_Assert(!img.empty());
+    return img;
+}
+
+void release_image(cv::Mat& img)
+{
+    img.release();
+}
+
+double get_current_time()
+{
+    return omp_get_wtime();
+}
+
+long long calculate_duration(const double& start_time, const double& finish_time)
+{
+    return static_cast<long long>((finish_time - start_time) * 1e9);
+}
+
+const char* format_time(const long long& time_ns)
+{
+    std::stringstream time_formatter;
+    time_formatter.imbue(std::locale(""));
+    time_formatter << time_ns;
+    return time_formatter.str().c_str();
+}
+
+long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Mat& img2)
+{
+    cv::Mat output_image(img1.size(), img1.type());
+
+    const uchar* img1_row;
+    const uchar* img2_row;
+    uchar* out_img_row;
+
+    int row, col;
+
+	// Start the timer
+	double start_time = get_current_time();
+
+    for (row = 0; row < output_image.rows; ++row)
+    {
+        img1_row = img1.ptr<uchar>(row);
+        img2_row = img2.ptr<uchar>(row);
+        out_img_row = output_image.ptr<uchar>(row);
+        
+        for (col = 0; col < output_image.cols; ++col)
+        {
+            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+        }
+    }
+
+    // Stop the timer
+	double finish_time = get_current_time();
+
+    cv::imwrite(OUTPUT_DIR "serial output.png", output_image);
+
+    release_image(output_image);
+
+	return calculate_duration(start_time, finish_time);
+}
+
+long long calculate_absolute_difference_parallel(const cv::Mat& img1, const cv::Mat& img2)
+{
+    cv::Mat output_image(img1.size(), img1.type());
+
+    const uchar* img1_row;
+    const uchar* img2_row;
+    uchar* out_img_row;
+
+    int row, col;
+
+	// Start the timer
+	double start_time = get_current_time();
+
+    #pragma omp parallel for simd default(shared) private(img1_row, img2_row, out_img_row, row, col) schedule(static)
+        for (row = 0; row < output_image.rows; ++row)
+        {
+            img1_row = img1.ptr<uchar>(row);
+            img2_row = img2.ptr<uchar>(row);
+            out_img_row = output_image.ptr<uchar>(row);
+            
+            for (col = 0; col < output_image.cols; ++col)
+            {
+                out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+            }
+        }
+
+    // Stop the timer
+	double finish_time = get_current_time();
+
+    cv::imwrite(OUTPUT_DIR "parallel output.png", output_image);
+
+    release_image(output_image);
+
+	return calculate_duration(start_time, finish_time);
+}
+
 int main()
 {
 	print_group_info();
 
-    Mat image_01 = imread(IMAGE_01, IMREAD_GRAYSCALE);
-    Mat image_02 = imread(IMAGE_02, IMREAD_GRAYSCALE);
+    cv::Mat image_01 = load_image(IMAGE_01_PATH);
+    cv::Mat image_02 = load_image(IMAGE_02_PATH);
 
-    CV_Assert(image_01.size() == image_02.size() && 
-              "Illegal frames: image_01 and image_02 have different sizes");
+    CV_Assert(image_01.size() == image_02.size() && image_01.type() == image_02.type());
+
+	// Set the number of threads
+	size_t num_threads = omp_get_max_threads() - 1;
+	omp_set_num_threads(num_threads);
+
+    long long elapsed_time_serial = calculate_absolute_difference_serial(image_01, image_02);
+    long long elapsed_time_parallel = calculate_absolute_difference_parallel(image_01, image_02);
+
+    release_image(image_01);
+    release_image(image_02);
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = calculate_absolute_difference_serial(image_01, image_02);
-	ll parallel_time = calculate_absolute_difference_parallel(image_01, image_02);
-
-	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
-
-    image_01.release();
-    image_02.release();
+    printf("\t- Serial Method: %s\n", format_time(elapsed_time_serial));
+    printf("\t- Parallel Method: %s\n", format_time(elapsed_time_parallel));
+    printf("\nSpeedup: %.4lf\n", static_cast<double>(elapsed_time_serial) / elapsed_time_parallel);
     
-    return 0;
+	return EXIT_SUCCESS;
 }

@@ -1,75 +1,106 @@
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
 #include <sstream>
 #include <chrono>
 
-using ll = long long;
-
-#define CHESS_BOARD_SIZE 15
-
-int solutions_count;
-
-int try_place_queen(int*& queens, int row, int column)
+void print_group_info()
 {
-    int i;
+    printf("Group Members:\n");
+    printf("\t- Ali Ghanbari [810199473]\n");
+    printf("\t- Behrad Elmi  [810199557]\n");
+}
 
-    for(i = 0; i < row; ++i)
+int* create_board(const size_t& board_size)
+{
+    return new int[board_size];
+}
+
+void clean_up_board(int*& board)
+{
+    delete[] board;
+    board = nullptr;
+}
+
+std::chrono::high_resolution_clock::time_point get_current_time()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
+template <typename T>
+long long calculate_duration(const T& start_time, const T& finish_time)
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
+}
+
+const char* format_time(const long long& time_ns)
+{
+    std::stringstream time_formatter;
+    time_formatter.imbue(std::locale(""));
+    time_formatter << time_ns;
+    return time_formatter.str().c_str();
+}
+
+void place_queen_or_advance(int*& board, const int current_row, const int current_column, \
+                            const size_t board_size, size_t& total_solutions)
+{
+    for (int previous_row = 0; previous_row < current_row; ++previous_row)
     {
-        if (queens[i] == column || abs(queens[i] - column) == (row - i))
+        int column_difference = abs(board[previous_row] - current_column);
+        bool same_column = board[previous_row] == current_column;
+        bool same_diagonal = column_difference == (current_row - previous_row);
+
+        if (same_column || same_diagonal)
         {
-            return -1;
+            return;
         }
     }
 
-    queens[row] = column; 
+    board[current_row] = current_column;
     
-    if(row == CHESS_BOARD_SIZE - 1)
+    if (current_row == board_size - 1)
     {
-        solutions_count++;
+        total_solutions++;
     }
     else
     {
-        for(i = 0; i < CHESS_BOARD_SIZE; ++i) // increment row
+        for (int next_column = 0; next_column < board_size; ++next_column)
         {
-            try_place_queen(queens, row + 1, i);
+            place_queen_or_advance(board, current_row + 1, next_column, board_size, total_solutions);
         }
     }
-
-    return 0;
 }
 
-void solve_nqueens(int*& queens)
+long long find_all_nqueens_solutions(int*& board, const size_t& board_size, size_t& total_solutions)
 {
-    int row;
+    int starting_column;
 
-    for(row = 0; row < CHESS_BOARD_SIZE; ++row)
+	// Start the timer
+	auto start_time = get_current_time();
+
+    for (starting_column = 0; starting_column < board_size; ++starting_column)
     {
-        try_place_queen(queens, 0, row);
+        place_queen_or_advance(board, 0, starting_column, board_size, total_solutions);
     }
+
+	// Stop the timer
+	auto finish_time = get_current_time();
+
+    return calculate_duration(start_time, finish_time);
 }
 
 int main()
 {
-    int* queens = new int[CHESS_BOARD_SIZE];
+    const size_t BOARD_SIZE = 15;
+    size_t total_solutions = 0;
+    int* chess_board = create_board(BOARD_SIZE);
 
-    // Start the timer
-	auto start_time = std::chrono::high_resolution_clock::now();
+    long long elapsed_time = find_all_nqueens_solutions(chess_board, BOARD_SIZE, total_solutions);
 
-    solve_nqueens(queens);
+    clean_up_board(chess_board);
 
-    // Stop the timer
-    auto finish_time = std::chrono::high_resolution_clock::now();
+    print_group_info();
+    printf("\nTotal Number of N-Queens Solutions: %zu\n", total_solutions);
+    printf("\nRun Time for Serial Implementation (ns): %s\n", format_time(elapsed_time));
 
-    delete[] queens;
-
-    ll execution_time = std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
-
-	// Use a string stream to format the output
-	std::stringstream output_formatter;
-	output_formatter.imbue(std::locale(""));
-	output_formatter << execution_time;
-
-    printf("Number of Solutions: %d\n", solutions_count);
-    printf("Run Time (ns): %s\n", output_formatter.str().c_str());
-
-    return 0;
+    return EXIT_SUCCESS;
 }

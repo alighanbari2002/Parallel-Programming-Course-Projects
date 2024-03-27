@@ -1,7 +1,8 @@
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sched.h>
 #include <unistd.h>
-#include <string.h>
 #ifdef 		_WIN32
 #include <intrin.h>
 #else
@@ -24,12 +25,12 @@ void cpuid(int cpu_info[4], int info_type)
 }
 #endif
 
+using DWORD = unsigned long int;
+
 #define INITIAL_APIC_ID_BITS 0xff000000
 #define HWD_MT_BIT (1 << 28)
 #define NUM_CORE_BITS 0xfc000000
 #define NUM_LOGICAL_BITS 0xFF0000
-
-typedef unsigned long int DWORD;
 
 unsigned int cpuid_supported(void)
 {
@@ -74,7 +75,7 @@ unsigned int is_HWMT_supported(void)
 {
     unsigned int reg_edx = 0;
 
-    if((cpuid_supported() >= 1) && genuine_intel())
+    if ((cpuid_supported() >= 1) && genuine_intel())
     {
         __asm__ volatile(
             "mov $1, %%eax;"
@@ -91,7 +92,7 @@ unsigned int get_max_num_cores_per_package(void)
 {
     unsigned int ncore_determin;
 
-    if(!is_HWMT_supported())
+    if (!is_HWMT_supported())
     {
         return 1;
     }
@@ -112,7 +113,7 @@ unsigned int get_max_numLP_per_package(void)
 {
     unsigned int reg_ebx = 0;
 
-    if(!is_HWMT_supported())
+    if (!is_HWMT_supported())
     {
         return 0;
     }
@@ -235,11 +236,11 @@ int get_num_active_cores()
     sched_getaffinity(getpid(), sizeof(cset), &cset);
     int j = 0, numLP_enabled = 0;
 
-    while(j < sysconf(_SC_NPROCESSORS_CONF))
+    while (j < sysconf(_SC_NPROCESSORS_CONF))
     {
         CPU_ZERO(&cset);
         CPU_SET(j, &cset);
-        if(sched_setaffinity(getpid(), sizeof(cset), &cset) != -1)
+        if (sched_setaffinity(getpid(), sizeof(cset), &cset) != -1)
         {
             usleep(0); // Ensure this thread is on the affinitized CPU
             apic_ID = get_initial_apic_ID();
@@ -260,7 +261,7 @@ int get_num_active_cores()
         j++;
     }
 
-	DWORD pCore_processor_mask[256];
+    DWORD pCore_processor_mask[256];
     unsigned char coreID_bucket [256];
     memset(pCore_processor_mask, 0, 256 * sizeof(pCore_processor_mask[0]));
     memset(coreID_bucket, 0, 256 * sizeof(coreID_bucket[0]));
@@ -270,23 +271,23 @@ int get_num_active_cores()
     coreID_bucket[0] = tbl_packageID[0] | tbl_coreID[0];
     processor_mask = 1;
     pCore_processor_mask[0] = processor_mask;
-    for(processor_num = 1; processor_num < numLP_enabled; ++processor_num)
+    for (processor_num = 1; processor_num < numLP_enabled; ++processor_num)
     {
         processor_mask <<= 1;
-        for(i = 0; i < core_num; ++i)
+        for (i = 0; i < core_num; ++i)
         {
             //
             // We may be comparing bit-fields of logical processors
             // residing in different packages, the code below assumes
             // that the bit-masks are the same on all processors in the system
             //
-            if((tbl_packageID[processor_num] | tbl_coreID[processor_num]) == coreID_bucket[i])
+            if ((tbl_packageID[processor_num] | tbl_coreID[processor_num]) == coreID_bucket[i])
             {
                 pCore_processor_mask[i] |= processor_mask;
                 break;
             }
         }
-        if(i == core_num)
+        if (i == core_num)
         {
             //
             // Did not match any bucket, start new bucket
@@ -310,16 +311,16 @@ void print_group_info()
 int main()
 {
     print_group_info();
-    
-	printf("\nProcessor Info:\n");
+
+    printf("\nProcessor Info:\n");
 
     // Get processor type
-	int info[4];
-	int processorType[12];
-	cpuid(processorType + 0x0, 0x80000002);
-	cpuid(processorType + 0x4, 0x80000003);
-	cpuid(processorType + 0x8, 0x80000004);
-	printf("\t- Type: %s\n", (char*)processorType);
+    int info[4];
+    int processorType[12];
+    cpuid(processorType + 0x0, 0x80000002);
+    cpuid(processorType + 0x4, 0x80000003);
+    cpuid(processorType + 0x8, 0x80000004);
+    printf("\t- Type: %s\n", (char*)processorType);
 
     // Get count of physical cores
     cpuid(info, 0x4);
@@ -330,10 +331,10 @@ int main()
     cpuid(info, 0x1);
     int logicalCores = (info[1] >> 16) & 0xFF;
     printf("\t- Logical Cores: %d\n", logicalCores);
-	printf("\t- Enabled/Active Cores: %d\n", get_num_active_cores());
+    printf("\t- Enabled/Active Cores: %d\n", get_num_active_cores());
 
     // Check if hyperthreading is supported
-	cpuid(info, 0x1);
+    cpuid(info, 0x1);
     int isHyperthreadingSupported = (info[2] >> 28) & 0x1;
     if (isHyperthreadingSupported)
     {
@@ -344,58 +345,58 @@ int main()
         printf("\t- Hyperthreading is not supported.\n");
     }
 
-	printf("\nCache Info:\n");
-	
+    printf("\nCache Info:\n");
+
     // Get cache information for cache level 1
     cpuid(info, 0x4 | (1 << 5)); // Set ECX to 1 to get cache level 1 information
-    
+
     // Extract cache type and cache size
     int cacheType = info[0] & 0x1F;
     int cacheSize = ((info[1] >> 22) & 0x3FF) * 1024; // Size in KB
     printf("\t- Type: %d\n", cacheType);
     printf("\t- L1 Cache Size: %d KB\n", cacheSize);
 
-	printf("\nSIMD Architecture Support:\n");
-    
+    printf("\nSIMD Architecture Support:\n");
+
     // Check for SIMD architecture support (MMX, SSE, SSE2, SSE3, etc.)
     unsigned short MMX   = 0;
-	unsigned short SSE   = 0;
-	unsigned short SSE2  = 0;
-	unsigned short SSE3  = 0;
-	unsigned short AES   = 0;
-	unsigned short SSE41 = 0;
-	unsigned short SSE42 = 0;
-	unsigned short AVX   = 0;
-	unsigned short AVX2  = 0;
-	unsigned short SHA   = 0;
+    unsigned short SSE   = 0;
+    unsigned short SSE2  = 0;
+    unsigned short SSE3  = 0;
+    unsigned short AES   = 0;
+    unsigned short SSE41 = 0;
+    unsigned short SSE42 = 0;
+    unsigned short AVX   = 0;
+    unsigned short AVX2  = 0;
+    unsigned short SHA   = 0;
 
     cpuid(info, 0x00000001);
-	MMX   = (info[3] & ((int)1 << 23)) != 0;
-	SSE   = (info[3] & ((int)1 << 25)) != 0;
-	SSE2  = (info[3] & ((int)1 << 26)) != 0;
-	SSE3  = (info[2] & ((int)1 << 0))  != 0;
-	AES   = (info[2] & ((int)1 << 25)) != 0;
-	SSE41 = (info[2] & ((int)1 << 19)) != 0;
-	SSE42 = (info[2] & ((int)1 << 20)) != 0;
-	AVX   = (info[2] & ((int)1 << 28)) != 0;
-	cpuid(info, 0x80000000);
-	if (info[0] >= 0x00000007)
+    MMX   = (info[3] & ((int)1 << 23)) != 0;
+    SSE   = (info[3] & ((int)1 << 25)) != 0;
+    SSE2  = (info[3] & ((int)1 << 26)) != 0;
+    SSE3  = (info[2] & ((int)1 << 0))  != 0;
+    AES   = (info[2] & ((int)1 << 25)) != 0;
+    SSE41 = (info[2] & ((int)1 << 19)) != 0;
+    SSE42 = (info[2] & ((int)1 << 20)) != 0;
+    AVX   = (info[2] & ((int)1 << 28)) != 0;
+    cpuid(info, 0x80000000);
+    if (info[0] >= 0x00000007)
     {
-		cpuid(info, 0x00000007);
-		AVX2   = (info[1] & ((int)1 <<  5)) != 0;
-		SHA    = (info[1] & ((int)1 << 29)) != 0;
-	}
+        cpuid(info, 0x00000007);
+        AVX2   = (info[1] & ((int)1 <<  5)) != 0;
+        SHA    = (info[1] & ((int)1 << 29)) != 0;
+    }
 
-	printf("\t- %s\n", MMX   ? "MMX   is supported." : "MMX   is not supported.");
-	printf("\t- %s\n", SSE   ? "SSE   is supported." : "SSE   is not supported.");
-	printf("\t- %s\n", SSE2  ? "SSE2  is supported." : "SSE2  is not supported.");
-	printf("\t- %s\n", SSE3  ? "SSE3  is supported." : "SSE3  is not supported.");
-	printf("\t- %s\n", SSE41 ? "SSE41 is supported." : "SSE41 is not supported.");
-	printf("\t- %s\n", SSE42 ? "SSE42 is supported." : "SSE42 is not supported.");
-	printf("\t- %s\n", AES   ? "AES   is supported." : "AES   is not supported.");
-	printf("\t- %s\n", SHA   ? "SHA   is supported." : "SHA   is not supported.");
-	printf("\t- %s\n", AVX   ? "AVX   is supported." : "AVX   is not supported.");
-	printf("\t- %s\n", AVX2  ? "AVX2  is supported." : "AVX2  is not supported.");
+    printf("\t- %s\n", MMX   ? "MMX   is supported." : "MMX   is not supported.");
+    printf("\t- %s\n", SSE   ? "SSE   is supported." : "SSE   is not supported.");
+    printf("\t- %s\n", SSE2  ? "SSE2  is supported." : "SSE2  is not supported.");
+    printf("\t- %s\n", SSE3  ? "SSE3  is supported." : "SSE3  is not supported.");
+    printf("\t- %s\n", SSE41 ? "SSE41 is supported." : "SSE41 is not supported.");
+    printf("\t- %s\n", SSE42 ? "SSE42 is supported." : "SSE42 is not supported.");
+    printf("\t- %s\n", AES   ? "AES   is supported." : "AES   is not supported.");
+    printf("\t- %s\n", SHA   ? "SHA   is supported." : "SHA   is not supported.");
+    printf("\t- %s\n", AVX   ? "AVX   is supported." : "AVX   is not supported.");
+    printf("\t- %s\n", AVX2  ? "AVX2  is supported." : "AVX2  is not supported.");
 
-    return 0;
+    return EXIT_SUCCESS;
 }

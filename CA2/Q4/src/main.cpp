@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <chrono>
+#include <iostream>
 #include <sstream>
-#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <chrono>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #ifdef 		_WIN32
@@ -11,87 +12,119 @@
 #include <x86intrin.h>
 #endif
 
-using std::chrono::high_resolution_clock;
-using std::chrono::duration_cast;
-using std::chrono::nanoseconds;
-using cv::Mat;
-using cv::imwrite;
-using cv::imread;
-using cv::IMREAD_GRAYSCALE;
-using std::stringstream;
-using std::locale;
+#define FRONT_IAMGE_PATH "../assets/front.png"
+#define LOGO_IMAGE_PATH  "../assets/logo.png"
+#define OUTPUT_DIR       "../output/"
 
-typedef long long ll;
-
-#define FRONT_IAMGE "../assets/front.png"
-#define LOGO_IMAGE  "../assets/logo.png"
-#define OUTPUT_DIR  "../output/"
-
-const double ALPHA = 0.25;
-const int M128_GRAY_INTERVAL = 16;
-
-ll image_blending_serial(const Mat& front, const Mat& logo, double alpha)
+void print_group_info()
 {
-    Mat out_img_serial = front.clone();
+    printf("Group Members:\n");
+	printf("\t- Ali Ghanbari [810199473]\n");
+	printf("\t- Behrad Elmi  [810199557]\n");
+}
 
-    // Start the timer
-	auto start_time = high_resolution_clock::now();
+cv::Mat load_image(const char* const &path)
+{
+    cv::Mat img = cv::imread(path, cv::IMREAD_GRAYSCALE);
+    CV_Assert(!img.empty());
+    return img;
+}
 
-    for(int row = 0; row < logo.rows; ++row)
+void release_image(cv::Mat& img)
+{
+    img.release();
+}
+
+bool can_fit_inside(const cv::Size& inner_size, const cv::Size& outer_size)
+{
+    return inner_size.width <= outer_size.width && inner_size.height <= outer_size.height;
+}
+
+std::chrono::high_resolution_clock::time_point get_current_time()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
+template <typename T>
+long long calculate_duration(const T& start_time, const T& finish_time)
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
+}
+
+const char* format_time(const long long& time_ns)
+{
+    std::stringstream time_formatter;
+    time_formatter.imbue(std::locale(""));
+    time_formatter << time_ns;
+    return time_formatter.str().c_str();
+}
+
+long long image_blending_serial(const cv::Mat& front, const cv::Mat& logo, const float& alpha)
+{
+    cv::Mat output_image = front.clone();
+
+    const uchar* front_row;
+    const uchar* logo_row;
+    uchar* out_img_row;
+
+    int row, col, new_pixel;
+
+	// Start the timer
+	auto start_time = get_current_time();
+
+    for (row = 0; row < logo.rows; ++row)
     {
-        const uchar* front_row = front.ptr<uchar>(row);
-        const uchar* logo_row = logo.ptr<uchar>(row);
-        uchar* out_img_row = out_img_serial.ptr<uchar>(row);
+        front_row = front.ptr<uchar>(row);
+        logo_row = logo.ptr<uchar>(row);
+        out_img_row = output_image.ptr<uchar>(row);
 
-        for(int col = 0; col < logo.cols; ++col)
+        for (col = 0; col < logo.cols; ++col)
         {
-            int new_pixel = front_row[col] + alpha * logo_row[col];
+            new_pixel = front_row[col] + alpha * logo_row[col];
             out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
 
     // Stop the timer
-	auto finish_time = high_resolution_clock::now();
+	auto finish_time = get_current_time();
 
-    imwrite(OUTPUT_DIR "serial output.png", out_img_serial);
-    out_img_serial.release();
+    cv::imwrite(OUTPUT_DIR "serial output.png", output_image);
 
-	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
+    release_image(output_image);
 
-    // Use a string stream to format the output
-	stringstream output_formatter;
-	output_formatter.imbue(locale(""));
-	output_formatter << execution_time;
-
-    printf("\t- Serial Method: %s\n", output_formatter.str().c_str());
-
-    return execution_time;
+	return calculate_duration(start_time, finish_time);
 }
 
-ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
+long long image_blending_parallel(const cv::Mat& front, const cv::Mat& logo, const float& alpha)
 {
-    Mat out_img_parallel = front.clone();
+    cv::Mat output_image = front.clone();
     
     __m128i_u logo_chunk, front_chunk;
     __m128i_u* output_chunk;
 
+    const int M128_GRAY_INTERVAL = 16;
+    const int logo_width = logo.cols - M128_GRAY_INTERVAL;
     // Divide by 4 
     // 00 --> xxxx xxxx xxxx xx --> xx
     // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
     const __m128i_u mask_divide_by_4 = _mm_set1_epi16(0xFF3F);
 
-    const int logo_width = logo.cols - M128_GRAY_INTERVAL;
+    const uchar* front_row;
+    const uchar* logo_row;
+    uchar* out_img_row;
 
-    // Start the timer
-	auto start_time = high_resolution_clock::now();
+    int row, col;
 
-    for(int row = 0; row < logo.rows; ++row)
+	// Start the timer
+	auto start_time = get_current_time();
+
+    for (row = 0; row < logo.rows; ++row)
     {
-        const uchar* front_row = front.ptr<uchar>(row);
-        const uchar* logo_row = logo.ptr<uchar>(row);
-        uchar* out_img_row = out_img_parallel.ptr<uchar>(row);
+        front_row = front.ptr<uchar>(row);
+        logo_row = logo.ptr<uchar>(row);
+        out_img_row = output_image.ptr<uchar>(row);
 
-        for(int col = 0; col < logo_width; col += M128_GRAY_INTERVAL)
+        for (col = 0; col < logo_width; col += M128_GRAY_INTERVAL)
         {
             front_chunk = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(front_row + col));
             logo_chunk  = _mm_lddqu_si128(reinterpret_cast<const __m128i_u*>(logo_row + col));
@@ -106,50 +139,37 @@ ll image_blending_parallel(const Mat& front, const Mat& logo, double alpha)
         }
     }
 
-    // Stop the timer
-	auto finish_time = high_resolution_clock::now();
+	// Stop the timer
+	auto finish_time = get_current_time();
 
-    imwrite(OUTPUT_DIR "parallel output.png", out_img_parallel);
-    out_img_parallel.release();
+    cv::imwrite(OUTPUT_DIR "parallel output.png", output_image);
 
-	ll execution_time = duration_cast<nanoseconds>(finish_time - start_time).count();
+    release_image(output_image);
 
-    // Use a string stream to format the output
-	stringstream output_formatter;
-	output_formatter.imbue(locale(""));
-	output_formatter << execution_time;
-
-    printf("\t- Parallel Method: %s\n", output_formatter.str().c_str());
-
-    return execution_time;
-}
-
-void print_group_info()
-{
-    printf("Group Members:\n");
-	printf("\t- Ali Ghanbari [810199473]\n");
-	printf("\t- Behrad Elmi  [810199557]\n");
+	return calculate_duration(start_time, finish_time);
 }
 
 int main()
 {
 	print_group_info();
 
-    Mat front_image = imread(FRONT_IAMGE, IMREAD_GRAYSCALE);
-    Mat logo_image = imread(LOGO_IMAGE, IMREAD_GRAYSCALE);
+    cv::Mat front_image = load_image(FRONT_IAMGE_PATH);
+    cv::Mat logo_image = load_image(LOGO_IMAGE_PATH);
 
-    CV_Assert(logo_image.size().width <= front_image.size().width && 
-              logo_image.size().height <= front_image.size().height && 
-              "Illegal frames: logo_image is larger than front_image");
+    CV_Assert(can_fit_inside(logo_image.size(), front_image.size()));
+
+    const float ALPHA = 0.25f;
+
+    long long elapsed_time_serial = image_blending_serial(front_image, logo_image, ALPHA);
+	long long elapsed_time_parallel = image_blending_parallel(front_image, logo_image, ALPHA);
+
+    release_image(front_image);
+    release_image(logo_image);
 
     printf("\nRun Time (ns):\n");
-    ll serial_time = image_blending_serial(front_image, logo_image, ALPHA);
-	ll parallel_time = image_blending_parallel(front_image, logo_image, ALPHA);
-
-	printf("\nSpeedup: %.4lf\n", (double) serial_time / (double) parallel_time);
-
-    front_image.release();
-    logo_image.release();
-
-    return 0;
+    printf("\t- Serial Method: %s\n", format_time(elapsed_time_serial));
+    printf("\t- Parallel Method: %s\n", format_time(elapsed_time_parallel));
+    printf("\nSpeedup: %.4lf\n", static_cast<double>(elapsed_time_serial) / elapsed_time_parallel);
+    
+	return EXIT_SUCCESS;
 }

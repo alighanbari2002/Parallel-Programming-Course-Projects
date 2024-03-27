@@ -1,89 +1,118 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <omp.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sstream>
-#include <string.h>
+#include <omp.h>
 
-using ll = long long;
-
-#define CHESS_BOARD_SIZE 15
-
-int solutions_count;
-
-int try_place_queen(int*& queens, int row, int column)
+void print_group_info()
 {
-	int i;
+    printf("Group Members:\n");
+    printf("\t- Ali Ghanbari [810199473]\n");
+    printf("\t- Behrad Elmi  [810199557]\n");
+}
 
-    for(i = 0; i < row; ++i)
+int* create_board(const size_t& board_size)
+{
+    return new int[board_size];
+}
+
+void clean_up_board(int*& board)
+{
+    delete[] board;
+    board = nullptr;
+}
+
+double get_current_time()
+{
+    return omp_get_wtime();
+}
+
+long long calculate_duration(const double& start_time, const double& finish_time)
+{
+    return static_cast<long long>((finish_time - start_time) * 1e9);
+}
+
+const char* format_time(const long long& time_ns)
+{
+    std::stringstream time_formatter;
+    time_formatter.imbue(std::locale(""));
+    time_formatter << time_ns;
+    return time_formatter.str().c_str();
+}
+
+void place_queen_or_advance(int*& board, const int current_row, const int current_column, \
+                            const size_t board_size, size_t& total_solutions)
+{
+    for (int previous_row = 0; previous_row < current_row; ++previous_row)
     {
-        if (queens[i] == column || abs(queens[i] - column) == (row - i))
+        int column_difference = abs(board[previous_row] - current_column);
+        bool same_column = board[previous_row] == current_column;
+        bool same_diagonal = column_difference == (current_row - previous_row);
+
+        if (same_column || same_diagonal)
         {
-            return -1;
+            return;
         }
     }
 
-    queens[row] = column;
-
-    if(row == CHESS_BOARD_SIZE - 1)
+    board[current_row] = current_column;
+    
+    if (current_row == board_size - 1)
     {
-		#pragma omp critical
-        	solutions_count++;
+        #pragma omp critical
+            total_solutions++;
     }
     else
     {
-		for(i = 0; i < CHESS_BOARD_SIZE; ++i) // increment row
-		{
-			try_place_queen(queens, row + 1, i);
-		}
+        for (int next_column = 0; next_column < board_size; ++next_column)
+        {
+            place_queen_or_advance(board, current_row + 1, next_column, board_size, total_solutions);
+        }
     }
-
-    return 0;
 }
 
-void solve_nqueens(int*& queens)
+long long find_all_nqueens_solutions(int*& board, const size_t& board_size, size_t& total_solutions)
 {
-    int* local_queens;
-    int row;
+    int* local_board;
+    int starting_column;
 
-    int num_threads = omp_get_max_threads();
-    omp_set_num_threads(num_threads - 1);
+    // Start the timer
+    double start_time = get_current_time();
 
-    #pragma omp parallel for simd default(shared) private(local_queens, row) schedule(static)
-        for(row = 0; row < CHESS_BOARD_SIZE; ++row)
+    #pragma omp parallel for simd default(shared) private(local_board, starting_column) schedule(static)
+        for (starting_column = 0; starting_column < board_size; ++starting_column)
         {
-            local_queens = new int[CHESS_BOARD_SIZE];
-            memcpy(local_queens, queens, CHESS_BOARD_SIZE * sizeof(int));
+            local_board = create_board(board_size);
+            memcpy(local_board, board, board_size * sizeof(int));
 
-            try_place_queen(local_queens, 0, row);
+            place_queen_or_advance(local_board, 0, starting_column, board_size, total_solutions);
 
-            delete[] local_queens;
+            clean_up_board(local_board);
         }
+
+    // Stop the timer
+    double finish_time = get_current_time();
+
+    return calculate_duration(start_time, finish_time);
 }
 
 int main()
 {
-    int* queens = new int[CHESS_BOARD_SIZE];
+    const size_t BOARD_SIZE = 15;
+    size_t total_solutions = 0;
+    int* chess_board = create_board(BOARD_SIZE);
 
-    // Start the timer
-    auto start_time = omp_get_wtime();
+    // Set the number of threads
+    size_t num_threads = omp_get_max_threads() - 1;
+    omp_set_num_threads(num_threads);
 
-    solve_nqueens(queens);
+    long long elapsed_time = find_all_nqueens_solutions(chess_board, BOARD_SIZE, total_solutions);
 
-    // Stop the timer
-	double finish_time = omp_get_wtime();
+    clean_up_board(chess_board);
 
-    delete[] queens;
+    print_group_info();
+    printf("\nTotal Number of N-Queens Solutions: %zu\n", total_solutions);
+    printf("\nRun Time for Parallel Implementation (ns): %s\n", format_time(elapsed_time));
 
-	ll execution_time = (finish_time - start_time) * 1e9;
-
-	// Use a string stream to format the output
-	std::stringstream output_formatter;
-	output_formatter.imbue(std::locale(""));
-	output_formatter << execution_time;
-
-    printf("Number of Solutions: %d\n", solutions_count);
-    printf("Run Time (ns): %s\n", output_formatter.str().c_str());
-
-    return 0;
+    return EXIT_SUCCESS;
 }
