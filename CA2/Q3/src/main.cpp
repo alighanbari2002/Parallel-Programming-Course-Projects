@@ -58,8 +58,6 @@ long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Ma
 {
     cv::Mat output_image(img1.size(), img1.type());
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     int row, col;
@@ -69,13 +67,13 @@ long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Ma
 
     for (row = 0; row < output_image.rows; ++row)
     {
-        img1_row = img1.ptr<uchar>(row);
-        img2_row = img2.ptr<uchar>(row);
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
         
         for (col = 0; col < output_image.cols; ++col)
         {
-            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+            out_img_row[col] = static_cast<uchar>(abs(img1_row[col] - img2_row[col]));
         }
     }
 
@@ -95,8 +93,6 @@ long long calculate_absolute_difference_parallel(const cv::Mat& img1, const cv::
 
     const int M128_GRAY_INTERVAL = 16;
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     __m128i img1_part, img2_part, diff_img12, diff_img21, diff;
@@ -108,8 +104,8 @@ long long calculate_absolute_difference_parallel(const cv::Mat& img1, const cv::
 
     for (row = 0; row < output_image.rows; ++row)
     {
-        img1_row = img1.ptr<uchar>(row);
-        img2_row = img2.ptr<uchar>(row);
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
 
         for (col = 0; col < output_image.cols; col += M128_GRAY_INTERVAL)

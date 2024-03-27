@@ -71,21 +71,19 @@ long long image_blending_serial(const cv::Mat& front, const cv::Mat& logo, const
 	// Start the timer
 	auto start_time = get_current_time();
 
-    const uchar* front_row;
-    const uchar* logo_row;
     uchar* out_img_row;
 
     int row, col, new_pixel;
 
     for (row = 0; row < logo.rows; ++row)
     {
-        front_row = front.ptr<uchar>(row);
-        logo_row = logo.ptr<uchar>(row);
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
 
         for (col = 0; col < logo.cols; ++col)
         {
-            new_pixel = front_row[col] + alpha * logo_row[col];
+            new_pixel = static_cast<int>(front_row[col] + alpha * logo_row[col]);
             out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
@@ -104,21 +102,19 @@ void* blend_images_with_alpha(void* arg)
 {
     thread_data_t* data = (thread_data_t*) arg;
 
-    const uchar* front_row;
-    const uchar* logo_row;
+    float alpha = data->alpha;
     uchar* out_img_row;
-
     int row, col, new_pixel;
 
     for (row = data->start_row; row < data->end_row; ++row)
     {
-        front_row = data->front->ptr<uchar>(row);
-        logo_row = data->logo->ptr<uchar>(row);
+        const uchar* front_row = data->front->ptr<uchar>(row);
+        const uchar* logo_row = data->logo->ptr<uchar>(row);
         out_img_row = data->out_img->ptr<uchar>(row);
 
         for (col = 0; col < data->logo->cols; ++col)
         {            
-            new_pixel = front_row[col] + data->alpha * logo_row[col];
+            new_pixel = static_cast<int>(front_row[col] + alpha * logo_row[col]);
             out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }

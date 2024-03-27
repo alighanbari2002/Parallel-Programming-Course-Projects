@@ -65,21 +65,19 @@ long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Ma
 	// Start the timer
 	auto start_time = get_current_time();
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     int row, col;
 
     for (row = 0; row < output_image.rows; ++row)
     {
-        img1_row = img1.ptr<uchar>(row);
-        img2_row = img2.ptr<uchar>(row);
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
         
         for (col = 0; col < output_image.cols; ++col)
         {
-            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+            out_img_row[col] = static_cast<uchar>(abs(img1_row[col] - img2_row[col]));
         }
     }
 
@@ -97,21 +95,19 @@ void* process_image_rows(void* arg)
 {
     thread_data_t* data = (thread_data_t*) arg;
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     int row, col;
 
     for (row = data->start_row; row < data->end_row; ++row)
     {
-        img1_row = data->img1->ptr<uchar>(row);
-        img2_row = data->img2->ptr<uchar>(row);
+        const uchar* img1_row = data->img1->ptr<uchar>(row);
+        const uchar* img2_row = data->img2->ptr<uchar>(row);
         out_img_row = data->out_img->ptr<uchar>(row);
 
         for (col = 0; col < data->out_img->cols; ++col)
         {
-            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+            out_img_row[col] = static_cast<uchar>(abs(img1_row[col] - img2_row[col]));
         }
     }
 

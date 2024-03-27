@@ -63,8 +63,6 @@ long long image_blending_serial(const cv::Mat& front, const cv::Mat& logo, const
 {
     cv::Mat output_image = front.clone();
 
-    const uchar* front_row;
-    const uchar* logo_row;
     uchar* out_img_row;
 
     int row, col, new_pixel;
@@ -74,13 +72,13 @@ long long image_blending_serial(const cv::Mat& front, const cv::Mat& logo, const
 
     for (row = 0; row < logo.rows; ++row)
     {
-        front_row = front.ptr<uchar>(row);
-        logo_row = logo.ptr<uchar>(row);
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
 
         for (col = 0; col < logo.cols; ++col)
         {
-            new_pixel = front_row[col] + alpha * logo_row[col];
+            new_pixel = static_cast<int>(front_row[col] + alpha * logo_row[col]);
             out_img_row[col] = new_pixel > 255 ? 255 : static_cast<uchar>(new_pixel);
         }
     }
@@ -109,8 +107,6 @@ long long image_blending_parallel(const cv::Mat& front, const cv::Mat& logo, con
     // 00xx xxxx xxxx xxxx --> 00xx xxxx 00xx xxxx
     const __m128i_u mask_divide_by_4 = _mm_set1_epi16(0xFF3F);
 
-    const uchar* front_row;
-    const uchar* logo_row;
     uchar* out_img_row;
 
     int row, col;
@@ -120,8 +116,8 @@ long long image_blending_parallel(const cv::Mat& front, const cv::Mat& logo, con
 
     for (row = 0; row < logo.rows; ++row)
     {
-        front_row = front.ptr<uchar>(row);
-        logo_row = logo.ptr<uchar>(row);
+        const uchar* front_row = front.ptr<uchar>(row);
+        const uchar* logo_row = logo.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
 
         for (col = 0; col < logo_width; col += M128_GRAY_INTERVAL)

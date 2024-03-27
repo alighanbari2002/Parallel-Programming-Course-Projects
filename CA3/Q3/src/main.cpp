@@ -51,8 +51,6 @@ long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Ma
 {
     cv::Mat output_image(img1.size(), img1.type());
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     int row, col;
@@ -62,13 +60,13 @@ long long calculate_absolute_difference_serial(const cv::Mat& img1, const cv::Ma
 
     for (row = 0; row < output_image.rows; ++row)
     {
-        img1_row = img1.ptr<uchar>(row);
-        img2_row = img2.ptr<uchar>(row);
+        const uchar* img1_row = img1.ptr<uchar>(row);
+        const uchar* img2_row = img2.ptr<uchar>(row);
         out_img_row = output_image.ptr<uchar>(row);
         
         for (col = 0; col < output_image.cols; ++col)
         {
-            out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+            out_img_row[col] = static_cast<uchar>(abs(img1_row[col] - img2_row[col]));
         }
     }
 
@@ -86,8 +84,6 @@ long long calculate_absolute_difference_parallel(const cv::Mat& img1, const cv::
 {
     cv::Mat output_image(img1.size(), img1.type());
 
-    const uchar* img1_row;
-    const uchar* img2_row;
     uchar* out_img_row;
 
     int row, col;
@@ -95,16 +91,16 @@ long long calculate_absolute_difference_parallel(const cv::Mat& img1, const cv::
 	// Start the timer
 	double start_time = get_current_time();
 
-    #pragma omp parallel for simd default(shared) private(img1_row, img2_row, out_img_row, row, col) schedule(static)
+    #pragma omp parallel for simd default(shared) private(out_img_row, row, col) schedule(static)
         for (row = 0; row < output_image.rows; ++row)
         {
-            img1_row = img1.ptr<uchar>(row);
-            img2_row = img2.ptr<uchar>(row);
+            const uchar* img1_row = img1.ptr<uchar>(row);
+            const uchar* img2_row = img2.ptr<uchar>(row);
             out_img_row = output_image.ptr<uchar>(row);
             
             for (col = 0; col < output_image.cols; ++col)
             {
-                out_img_row[col] = abs(img1_row[col] - img2_row[col]);
+                out_img_row[col] = static_cast<uchar>(abs(img1_row[col] - img2_row[col]));
             }
         }
 
