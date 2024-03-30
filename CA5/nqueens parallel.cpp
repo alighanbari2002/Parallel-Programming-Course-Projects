@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
+#include <chrono>
 #include <omp.h>
 
 void print_group_info()
@@ -22,14 +23,15 @@ void clean_up_board(int*& board)
     board = nullptr;
 }
 
-double get_current_time()
+std::chrono::high_resolution_clock::time_point get_current_time()
 {
-    return omp_get_wtime();
+	return std::chrono::high_resolution_clock::now();
 }
 
-long long calculate_duration(const double& start_time, const double& finish_time)
+template <typename T>
+long long calculate_duration(const T& start_time, const T& finish_time)
 {
-    return static_cast<long long>((finish_time - start_time) * 1e9);
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
 }
 
 const char* format_time(const long long& time_ns)
@@ -77,7 +79,7 @@ long long find_all_nqueens_solutions(int*& board, const size_t& board_size, size
     int starting_column;
 
     // Start the timer
-    double start_time = get_current_time();
+    auto start_time = get_current_time();
 
     #pragma omp parallel for simd default(shared) private(local_board, starting_column) schedule(static)
         for (starting_column = 0; starting_column < board_size; ++starting_column)
@@ -91,7 +93,7 @@ long long find_all_nqueens_solutions(int*& board, const size_t& board_size, size
         }
 
     // Stop the timer
-    double finish_time = get_current_time();
+    auto finish_time = get_current_time();
 
     return calculate_duration(start_time, finish_time);
 }
