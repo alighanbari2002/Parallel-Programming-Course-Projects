@@ -1,26 +1,21 @@
 SUBDIRS := $(wildcard */.)
-CLEAR_DIR_FLAG = --no-print-directory
+
+CLEAR_DIR_FLAG := --no-print-directory
 
 define submake
-	@counter=1;                                             \
-	for d in $(SUBDIRS); do                                 \
-		if [ "$(MAKECMDGOALS)" = "run" ]; then              \
-			printf "===========\n";                         \
-			printf "Question #$$counter\n";                 \
-			printf "===========\n";                         \
-		fi;                                                 \
-		$(MAKE) $(1) --directory=$$d;                       \
-		counter=$$((counter + 1));                          \
+	@subdir_count=1;                                 \
+	for d in $(SUBDIRS); do                          \
+		if [ "$(MAKECMDGOALS)" = "run" ]; then       \
+			printf "===========\n";                  \
+			printf "Question #$$subdir_count\n";     \
+			printf "===========\n";                  \
+		fi;                                          \
+		$(MAKE) $(1) --directory=$$d;                \
+		subdir_count=$$((subdir_count + 1));         \
 	done
 endef
 #----------------------------------------------------------------
 all: ; $(call submake, $@)
-
-run:    ; $(call submake, $@ $(CLEAR_DIR_FLAG))
-run-Q1: ; @$(MAKE) run --directory="Q1/" $(CLEAR_DIR_FLAG)
-run-Q2: ; @$(MAKE) run --directory="Q2/" $(CLEAR_DIR_FLAG)
-run-Q3: ; @$(MAKE) run --directory="Q3/" $(CLEAR_DIR_FLAG)
-run-Q4: ; @$(MAKE) run --directory="Q4/" $(CLEAR_DIR_FLAG)
 
 clean:    ; $(call submake, $@)
 clean-Q1: ; @$(MAKE) clean --directory="Q1/" $(CLEAR_DIR_FLAG)
@@ -28,7 +23,13 @@ clean-Q2: ; @$(MAKE) clean --directory="Q2/" $(CLEAR_DIR_FLAG)
 clean-Q3: ; @$(MAKE) clean --directory="Q3/" $(CLEAR_DIR_FLAG)
 clean-Q4: ; @$(MAKE) clean --directory="Q4/" $(CLEAR_DIR_FLAG)
 
-report:    ; $(call submake,$@ $(CLEAR_DIR_FLAG))
+run:    ; $(call submake, $@ $(CLEAR_DIR_FLAG))
+run-Q1: ; @$(MAKE) run --directory="Q1/" $(CLEAR_DIR_FLAG)
+run-Q2: ; @$(MAKE) run --directory="Q2/" $(CLEAR_DIR_FLAG)
+run-Q3: ; @$(MAKE) run --directory="Q3/" $(CLEAR_DIR_FLAG)
+run-Q4: ; @$(MAKE) run --directory="Q4/" $(CLEAR_DIR_FLAG)
+
+report:    ; $(call submake, $@ $(CLEAR_DIR_FLAG))
 report-Q1: ; @$(MAKE) report --directory="Q1/" $(CLEAR_DIR_FLAG)
 report-Q2: ; @$(MAKE) report --directory="Q2/" $(CLEAR_DIR_FLAG)
 report-Q3: ; @$(MAKE) report --directory="Q3/" $(CLEAR_DIR_FLAG)
