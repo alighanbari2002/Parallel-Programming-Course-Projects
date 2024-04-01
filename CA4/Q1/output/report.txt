@@ -3,13 +3,13 @@ Group Members:
 	- Behrad Elmi  [810199557]
 
 Serial Method:
-	- Min Value: 0.320368
-	- Min Index: 987238
-	- Run Time (ns): 1865496.0000
+	- Min Value: 3.636815
+	- Min Index: 1001268
+	- Run Time (ns): 4,356,449
 
 Parallel Method:
-	- Min Value: 0.320368
-	- Min Index: 987238
-	- Run Time (ns): 598571.0000
+	- Min Value: 3.636815
+	- Min Index: 1001268
+	- Run Time (ns): 426,497
 
-Speedup: 3.1166
+Speedup: 10.2145

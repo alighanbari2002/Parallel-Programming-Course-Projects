@@ -3,7 +3,7 @@ Group Members:
 	- Behrad Elmi  [810199557]
 
 Run Time (ns):
-	- Serial Method: 2867774.0000
-	- Parallel Method: 446204.0000
+	- Serial Method: 61,296
+	- Parallel Method: 3,051
 
-Speedup: 6.4270
+Speedup: 20.0905

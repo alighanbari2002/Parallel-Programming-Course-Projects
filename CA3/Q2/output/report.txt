@@ -3,13 +3,13 @@ Group Members:
 	- Behrad Elmi  [810199557]
 
 Serial Method:
-	- Average: 500319.4274
-	- Standard Deviation: 288539.2383
-	- Run Time (ns): 5770208.9998
+	- Average: 4997587.7240
+	- Standard Deviation: 2886532.8022
+	- Run Time (ns): 2,435,764
 
 Parallel Method:
-	- Average: 500319.4274
-	- Standard Deviation: 288539.2383
-	- Run Time (ns): 1489988.9993
+	- Average: 4997587.7240
+	- Standard Deviation: 2886532.8022
+	- Run Time (ns): 642,839
 
-Speedup: 3.8727
+Speedup: 3.7891

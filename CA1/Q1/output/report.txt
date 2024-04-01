@@ -21,6 +21,6 @@ SIMD Architecture Support:
 	- SSE41 is supported.
 	- SSE42 is supported.
 	- AES   is supported.
-	- SHA   is not supported.
 	- AVX   is supported.
 	- AVX2  is not supported.
+	- SHA   is not supported.
