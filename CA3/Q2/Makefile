@@ -8,7 +8,7 @@ PATH_DEP    := $(PATH_BUILD)/dep
 
 include common_vars.mk
 
-LDFLAGS  += -fopenmp
+LDFLAGS  += -fopenmp -flto
 LDLIBS   += # -l
 CPPFLAGS += -I $(PATH_LIB)
 

@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS += -Wall -pedantic -fopenmp
+CXXFLAGS += -Wall -pedantic -fopenmp -fprefetch-loop-arrays -ftree-vectorize -flto -fomit-frame-pointer
 CXX      += $(CXXFLAGS)
 CPPFLAGS += -std=c++11
 

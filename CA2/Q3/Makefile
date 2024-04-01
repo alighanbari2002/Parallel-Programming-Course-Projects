@@ -8,7 +8,7 @@ PATH_DEP    := $(PATH_BUILD)/dep
 
 include common_vars.mk
 
-LDFLAGS  += # -L
+LDFLAGS  += -flto
 LDLIBS   += $(shell pkg-config --libs opencv4)
 CPPFLAGS += $(shell pkg-config --cflags opencv4) -I $(PATH_LIB)
 

@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS += -Wall -pedantic -pthread
+CXXFLAGS += -Wall -pedantic -pthread -O1 -ftree-vectorize -flto
 CXX      += $(CXXFLAGS)
 CPPFLAGS += -std=c++11
 

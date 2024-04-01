@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS += -Wall -pedantic -pthread
+CXXFLAGS += -Wall -pedantic -pthread -march=native -mtune=native -flto
 CXX      += $(CXXFLAGS)
 CPPFLAGS += -std=c++11
 
