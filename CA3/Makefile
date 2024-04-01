@@ -54,9 +54,9 @@ help:
 	@echo "  clean-Q3  - Clean Q3 build artifacts"
 	@echo "  clean-Q4  - Clean Q4 build artifacts"
 	@echo "  help      - Show this help message"
-#------------------------------------------------------------------------------------------
+#----------------------------------------------------------------
 .PHONY: all $(SUBDIRS) \
+		clean clean-Q1 clean-Q2 clean-Q3 clean-Q4 \
 		run run-Q1 run-Q2 run-Q3 run-Q4 \
 		report report-Q1 report-Q2 report-Q3 report-Q4 \
-		clean clean-Q1 clean-Q2 clean-Q3 clean-Q4 \
 		help

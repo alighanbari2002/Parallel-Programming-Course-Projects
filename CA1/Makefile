@@ -44,7 +44,7 @@ help:
 	@echo "  help      - Show this help message"
 #------------------------------------------------------------------------------------------
 .PHONY: all $(SUBDIRS) \
+		clean clean-Q1 clean-Q2 \
 		run run-Q1 run-Q2 \
 		report report-Q1 report-Q2 \
-		clean clean-Q1 clean-Q2 \
 		help
