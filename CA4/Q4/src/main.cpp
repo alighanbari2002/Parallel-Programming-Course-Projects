@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <thread>
 #include <algorithm>
+#include <pthread.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 

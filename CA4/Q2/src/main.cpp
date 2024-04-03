@@ -24,5 +24,5 @@ int main()
 
 	printf("\nSpeedup: %.4lf\n", static_cast<double>(elapsed_time_serial) / elapsed_time_parallel);
 
-    pthread_exit(nullptr);
+	pthread_exit(nullptr);
 }
