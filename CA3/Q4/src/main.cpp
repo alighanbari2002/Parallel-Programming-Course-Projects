@@ -18,11 +18,12 @@ int main()
 
     CV_Assert(can_fit_inside(logo_image.size(), front_image.size()));
 
+    long long elapsed_time_serial = image_blending_serial(front_image, logo_image);
+
 	// Set the number of threads
     size_t num_threads = std::min<size_t>(2, omp_get_max_threads());
 	omp_set_num_threads(num_threads);
 
-    long long elapsed_time_serial = image_blending_serial(front_image, logo_image);
 	long long elapsed_time_parallel = image_blending_parallel(front_image, logo_image);
 
     release_image(front_image);

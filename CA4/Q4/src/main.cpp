@@ -19,10 +19,11 @@ int main()
 
     CV_Assert(can_fit_inside(logo_image.size(), front_image.size()));
 
+    long long elapsed_time_serial = image_blending_serial(front_image, logo_image);
+
 	// Set the number of threads
     size_t num_threads = std::min<size_t>(3, std::thread::hardware_concurrency());
 
-    long long elapsed_time_serial = image_blending_serial(front_image, logo_image);
 	long long elapsed_time_parallel = image_blending_parallel(front_image, logo_image, num_threads);
 
     release_image(front_image);
