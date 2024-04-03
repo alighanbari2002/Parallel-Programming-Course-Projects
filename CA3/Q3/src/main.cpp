@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstddef>
+#include <string>
 #include <omp.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -27,8 +28,8 @@ int main()
     release_image(second_image);
 
     printf("\nRun Time (ns):\n");
-    printf("\t- Serial Method: %s\n", format_time(elapsed_time_serial));
-    printf("\t- Parallel Method: %s\n", format_time(elapsed_time_parallel));
+    printf("\t- Serial Method: %s\n", format_time(elapsed_time_serial).c_str());
+    printf("\t- Parallel Method: %s\n", format_time(elapsed_time_parallel).c_str());
     printf("\nSpeedup: %.4lf\n", static_cast<double>(elapsed_time_serial) / elapsed_time_parallel);
     
 	return EXIT_SUCCESS;

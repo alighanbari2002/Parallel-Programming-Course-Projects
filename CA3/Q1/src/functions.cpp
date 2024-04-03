@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstddef>
+#include <string>
 #include <cfloat>
 #include <omp.h>
 
@@ -32,7 +33,7 @@ long long min_search_serial(const float* const &array)
 	printf("\nSerial Method:\n");
 	printf("\t- Min Value: %f\n", min_element.value);
 	printf("\t- Min Index: %d\n", min_element.index);
-	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time));
+	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time).c_str());
 
 	return elapsed_time;
 }
@@ -69,7 +70,7 @@ long long min_search_parallel(const float* const &array)
 	printf("\nParallel Method:\n");
 	printf("\t- Min Value: %f\n", min_element.value);
 	printf("\t- Min Index: %d\n", min_element.index);
-	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time));
+	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time).c_str());
 
 	return elapsed_time;
 }

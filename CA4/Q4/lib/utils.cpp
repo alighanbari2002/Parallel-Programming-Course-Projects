@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <chrono>
 #include <sstream>
+#include <string>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
@@ -36,10 +37,10 @@ std::chrono::high_resolution_clock::time_point get_current_time()
 	return std::chrono::high_resolution_clock::now();
 }
 
-const char* format_time(const long long& time_ns)
+std::string format_time(const long long& time_ns)
 {
     std::stringstream time_formatter;
     time_formatter.imbue(std::locale(""));
     time_formatter << time_ns;
-    return time_formatter.str().c_str();
+    return time_formatter.str();
 }

@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <random>
 #include <sstream>
+#include <string>
 #include <omp.h>
 
 #include "utils.hpp"
@@ -34,12 +35,12 @@ long long calculate_duration(const double& start_time, const double& finish_time
 	return static_cast<long long>((finish_time - start_time) * 1e9);
 }
 
-const char* format_time(const long long& time_ns)
+std::string format_time(const long long& time_ns)
 {
 	std::stringstream time_formatter;
 	time_formatter.imbue(std::locale(""));
 	time_formatter << time_ns;
-	return time_formatter.str().c_str();
+	return time_formatter.str();
 }
 
 void fill_array_with_random_values(float*& array)

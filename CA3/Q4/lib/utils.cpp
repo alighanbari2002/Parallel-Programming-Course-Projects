@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <omp.h>
 #include <sstream>
+#include <string>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
@@ -40,10 +41,10 @@ long long calculate_duration(const double& start_time, const double& finish_time
     return static_cast<long long>((finish_time - start_time) * 1e9);
 }
 
-const char* format_time(const long long& time_ns)
+std::string format_time(const long long& time_ns)
 {
     std::stringstream time_formatter;
     time_formatter.imbue(std::locale(""));
     time_formatter << time_ns;
-    return time_formatter.str().c_str();
+    return time_formatter.str();
 }

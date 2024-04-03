@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <string>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
@@ -25,6 +26,6 @@ double get_current_time();
 
 long long calculate_duration(const double& start_time, const double& finish_time);
 
-const char* format_time(const long long& time_ns);
+std::string format_time(const long long& time_ns);
 
 #endif // UTILS_HPP

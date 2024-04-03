@@ -2,6 +2,7 @@
 #define UTILS_HPP
 
 #include <cstddef>
+#include <string>
 #include <chrono>
 #include <cfloat>
 #ifdef _WIN32
@@ -41,7 +42,7 @@ long long calculate_duration(const T& start_time, const T& finish_time)
     return std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
 }
 
-const char* format_time(const long long& time_ns);
+std::string format_time(const long long& time_ns);
 
 void fill_array_with_random_values(float*& array);
 

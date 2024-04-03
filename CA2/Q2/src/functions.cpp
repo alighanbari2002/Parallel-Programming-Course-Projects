@@ -1,6 +1,7 @@
 #include <cstdio>
-#include <cmath>
 #include <cstddef>
+#include <string>
+#include <cmath>
 #ifdef _WIN32
 #include <intrin.h>
 #else
@@ -58,7 +59,7 @@ long long compute_avg_and_std_serial(const float* const &array)
 	printf("\nSerial Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time));
+	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time).c_str());
 
 	return elapsed_time;
 }
@@ -121,7 +122,7 @@ long long compute_avg_and_std_parallel(const float* const &array)
 	printf("\nParallel Method:\n");
 	printf("\t- Average: %.4f\n", average);
 	printf("\t- Standard Deviation: %.4f\n", standard_deviation);
-	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time));
+	printf("\t- Run Time (ns): %s\n", format_time(elapsed_time).c_str());
 
 	return elapsed_time;
 }

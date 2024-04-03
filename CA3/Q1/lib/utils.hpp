@@ -2,6 +2,7 @@
 #define UTILS_HPP
 
 #include <cstddef>
+#include <string>
 
 typedef struct {
 	float value;
@@ -26,7 +27,7 @@ double get_current_time();
 
 long long calculate_duration(const double& start_time, const double& finish_time);
 
-const char* format_time(const long long& time_ns);
+std::string format_time(const long long& time_ns);
 
 void fill_array_with_random_values(float*& array);
 

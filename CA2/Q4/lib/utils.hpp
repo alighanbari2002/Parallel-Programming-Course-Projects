@@ -2,6 +2,7 @@
 #define UTILS_HPP
 
 #include <chrono>
+#include <string>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
@@ -45,6 +46,6 @@ long long calculate_duration(const T& start_time, const T& finish_time)
     return std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
 }
 
-const char* format_time(const long long& time_ns);
+std::string format_time(const long long& time_ns);
 
 #endif // UTILS_HPP
